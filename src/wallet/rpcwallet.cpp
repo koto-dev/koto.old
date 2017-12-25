@@ -1338,7 +1338,8 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
             entry.push_back(Pair("fee", ValueFromAmount(-nFee)));
             if (fLong)
                 WalletTxToJSON(wtx, entry);
-            entry.push_back(Pair("size", static_cast<CTransaction>(wtx).GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION)));
+           entry.push_back(Pair("size", (uint64_t)static_cast<CTransaction>(wtx).GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION)));
+
             ret.push_back(entry);
         }
     }
@@ -1375,7 +1376,8 @@ void ListTransactions(const CWalletTx& wtx, const string& strAccount, int nMinDe
                 entry.push_back(Pair("vout", r.vout));
                 if (fLong)
                     WalletTxToJSON(wtx, entry);
-                entry.push_back(Pair("size", static_cast<CTransaction>(wtx).GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION)));
+             entry.push_back(Pair("size", (uint64_t)static_cast<CTransaction>(wtx).GetSerializeSize(SER_NETWORK, PROTOCOL_VERSION)));
+
                 ret.push_back(entry);
             }
         }
@@ -2496,8 +2498,8 @@ UniValue zc_sample_joinsplit(const UniValue& params, bool fHelp)
     JSDescription samplejoinsplit(*pzcashParams,
                                   pubKeyHash,
                                   anchor,
-                                  {JSInput(), JSInput()},
-                                  {JSOutput(), JSOutput()},
+                                { {JSInput(), JSInput()} },
+                                 { {JSOutput(), JSOutput()} },
                                   0,
                                   0);
 
@@ -2825,8 +2827,8 @@ UniValue zc_raw_joinsplit(const UniValue& params, bool fHelp)
     JSDescription jsdesc(*pzcashParams,
                          joinSplitPubKey,
                          anchor,
-                         {vjsin[0], vjsin[1]},
-                         {vjsout[0], vjsout[1]},
+                        { {vjsin[0], vjsin[1]} },
+                         { {vjsout[0], vjsout[1]} },
                          vpub_old,
                          vpub_new);
 
@@ -3698,9 +3700,9 @@ UniValue z_shieldcoinbase(const UniValue& params, bool fHelp)
 
     // Return continuation information
     UniValue o(UniValue::VOBJ);
-    o.push_back(Pair("remainingUTXOs", utxoCounter - numUtxos));
+    o.push_back(Pair("remainingUTXOs", (uint64_t)(utxoCounter - numUtxos)));
     o.push_back(Pair("remainingValue", ValueFromAmount(remainingValue)));
-    o.push_back(Pair("shieldingUTXOs", numUtxos));
+    o.push_back(Pair("shieldingUTXOs", (uint64_t)numUtxos));
     o.push_back(Pair("shieldingValue", ValueFromAmount(shieldedValue)));
     o.push_back(Pair("opid", operationId));
     return o;

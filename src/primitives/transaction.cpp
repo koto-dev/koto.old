@@ -47,8 +47,13 @@ JSDescription JSDescription::Randomized(
             const uint256& anchor,
             boost::array<libzcash::JSInput, ZC_NUM_JS_INPUTS>& inputs,
             boost::array<libzcash::JSOutput, ZC_NUM_JS_OUTPUTS>& outputs,
+#ifdef __LP64__
+            boost::array<uint64_t, ZC_NUM_JS_INPUTS>& inputMap,
+            boost::array<uint64_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+#else
             boost::array<size_t, ZC_NUM_JS_INPUTS>& inputMap,
             boost::array<size_t, ZC_NUM_JS_OUTPUTS>& outputMap,
+#endif
             CAmount vpub_old,
             CAmount vpub_new,
             bool computeProof,
@@ -57,8 +62,8 @@ JSDescription JSDescription::Randomized(
         )
 {
     // Randomize the order of the inputs and outputs
-    inputMap = {0, 1};
-    outputMap = {0, 1};
+    inputMap = { {0, 1} };
+    outputMap = { {0, 1} };
 
     assert(gen);
 
