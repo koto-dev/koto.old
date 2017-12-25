@@ -118,8 +118,8 @@ double benchmark_create_joinsplit()
     JSDescription jsdesc(*pzcashParams,
                          pubKeyHash,
                          anchor,
-                         {JSInput(), JSInput()},
-                         {JSOutput(), JSOutput()},
+                       { {JSInput(), JSInput()} },
+                        { {JSOutput(), JSOutput()} },
                          0,
                          0);
     double ret = timer_stop(tv_start);
