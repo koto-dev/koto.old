@@ -684,7 +684,7 @@ UniValue getblockchaininfo(const UniValue& params, bool fHelp)
 
     ZCIncrementalMerkleTree tree;
     pcoinsTip->GetAnchorAt(pcoinsTip->GetBestAnchor(), tree);
-    obj.push_back(Pair("commitments",           tree.size()));
+    obj.push_back(Pair("commitments",           (uint64_t)tree.size()));
 
     const Consensus::Params& consensusParams = Params().GetConsensus();
     CBlockIndex* tip = chainActive.Tip();

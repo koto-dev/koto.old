@@ -287,7 +287,7 @@ for test_input in TEST_VECTORS:
     BOOST_FOREACH(std::vector<std::string>& v, tests) {
         auto expected = ZCJoinSplit::h_sig(
             uint256S(v[0]),
-            {uint256S(v[1]), uint256S(v[2])},
+          { {uint256S(v[1]), uint256S(v[2])} },
             uint256S(v[3])
         );
 

@@ -118,6 +118,14 @@ bool UniValue::setNumStr(const string& val_)
     val = val_;
     return true;
 }
+bool UniValue::setInt(size_t val_)
+{
+    ostringstream oss;
+
+    oss << val_;
+
+    return setNumStr(oss.str());
+}
 
 bool UniValue::setInt(uint64_t val_)
 {
