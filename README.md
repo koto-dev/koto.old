@@ -1,5 +1,13 @@
-Koto 1.0.13
+Koto 1.0.13 mac-dev
 =============
+
+How to build koto for Mac OS
+-----
+https://github.com/koto-dev/koto/wiki/How-to-build-for-Mac-OS
+
+How to build koto for Mac OS (japanese)
+-----
+https://github.com/koto-dev/koto/wiki/How-to-build-for-Mac-Os-(Japanese)
 
 What is Koto?
 --------------
