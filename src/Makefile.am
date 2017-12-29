@@ -551,8 +551,8 @@ if GLIBC_BACK_COMPAT
   libzcashconsensus_la_SOURCES += compat/glibc_compat.cpp
 endif
 
-libzcashconsensus_la_LDFLAGS = -no-undefined $(RELDFLAGS) 
-libzcashconsensus_la_LIBADD = $(LIBZCASH) $(LIBSECP256K1) -lboost_system -lsodium 
+libzcashconsensus_la_LDFLAGS = -no-undefined $(RELDFLAGS) -L$(srcdir) 
+libzcashconsensus_la_LIBADD =  $(LIBSECP256K1) -lboost_system -lsodium -lzcash
 libzcashconsensus_la_CPPFLAGS = $(HARDENED_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL 
 libzcashconsensus_la_CXXFLAGS =$(HARDENED_CXXFLAGS) $(ERROR_CXXFLAGS) -DNO_UTIL_LOG 
 
