@@ -1,4 +1,4 @@
-Koto 1.0.14-rc1
+Koto 1.0.14
 =============
 
 What is Koto?
@@ -38,9 +38,9 @@ https://github.com/zcash/zcash/wiki/1.0-User-Guide
 
 ### Need Help?
 
-* See the documentation at the [Koto Wiki](https://github.com/zcash/zcash/wiki)
+* See the documentation at the [Koto Wiki](https://github.com/koto-dev/wiki/wiki)
   for help and more information.
-* Ask for help on the [Koto](https://forum.z.cash/) forum.
+* Ask for help on the [Koto](https://discourse.koto.cash/) forum.
 
 Participation in the Koto project is subject to a
 [Code of Conduct](code_of_conduct.md).
