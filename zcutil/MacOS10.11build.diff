@@ -1,0 +1,102 @@
+diff --git a/depends/Makefile b/depends/Makefile
+index 897c4ad..4486101 100644
+--- a/depends/Makefile
++++ b/depends/Makefile
+@@ -99,8 +99,8 @@ $(host_prefix)/.stamp_$(final_build_id): $(native_packages) $(packages)
+ $(host_prefix)/share/config.site : config.site.in $(host_prefix)/.stamp_$(final_build_id)
+ 	$(AT)@mkdir -p $(@D)
+ 	$(AT)sed -e 's|@HOST@|$(host)|' \
+-            -e 's|@CC@|$(toolchain_path)$(host_CC)|' \
+-            -e 's|@CXX@|$(toolchain_path)$(host_CXX)|' \
++            -e 's|@CC@|/usr/local/opt/llvm/bin/clang|' \
++            -e 's|@CXX@|/usr/local/opt/llvm/bin/clang++|' \
+             -e 's|@AR@|$(toolchain_path)$(host_AR)|' \
+             -e 's|@RANLIB@|$(toolchain_path)$(host_RANLIB)|' \
+             -e 's|@NM@|$(toolchain_path)$(host_NM)|' \
+diff --git a/depends/hosts/darwin.mk b/depends/hosts/darwin.mk
+index 4e58bec..15545b4 100644
+--- a/depends/hosts/darwin.mk
++++ b/depends/hosts/darwin.mk
+@@ -2,8 +2,8 @@ OSX_MIN_VERSION=10.8
+ OSX_SDK_VERSION=10.11
+ OSX_SDK=$(SDK_PATH)/MacOSX$(OSX_SDK_VERSION).sdk
+ LD64_VERSION=253.9
+-darwin_CC=clang -target $(host) -mmacosx-version-min=$(OSX_MIN_VERSION) --sysroot $(OSX_SDK) -mlinker-version=$(LD64_VERSION)
+-darwin_CXX=clang++ -target $(host) -mmacosx-version-min=$(OSX_MIN_VERSION) --sysroot $(OSX_SDK) -mlinker-version=$(LD64_VERSION) -stdlib=libc++
++darwin_CC=/usr/local/opt/llvm/bin/clang -target $(host) -mmacosx-version-min=$(OSX_MIN_VERSION) --sysroot $(OSX_SDK) -mlinker-version=$(LD64_VERSION)
++darwin_CXX=/usr/local/opt/llvm/bin/clang++ -target $(host) -mmacosx-version-min=$(OSX_MIN_VERSION) --sysroot $(OSX_SDK) -mlinker-version=$(LD64_VERSION) -stdlib=libc++
+ 
+ darwin_CFLAGS=-pipe
+ darwin_CXXFLAGS=$(darwin_CFLAGS)
+diff --git a/src/snark/src/common/profiling.cpp b/src/snark/src/common/profiling.cpp
+index d227203..18f3194 100644
+--- a/src/snark/src/common/profiling.cpp
++++ b/src/snark/src/common/profiling.cpp
+@@ -25,7 +25,12 @@
+ #ifndef NO_PROCPS
+ #include <proc/readproc.h>
+ #endif
+-
++#ifdef __MACH__
++#include <time.h>
++#include <sys/time.h>
++#include <mach/clock.h>
++#include <mach/mach.h>
++#endif
+ namespace libsnark {
+ 
+ long long get_nsec_time()
+@@ -37,12 +42,22 @@ long long get_nsec_time()
+ /* Return total CPU time consumsed by all threads of the process, in nanoseconds. */
+ long long get_nsec_cpu_time()
+ {
+-    ::timespec ts;
++      ::timespec ts;
++#ifdef __MACH__
++     clock_serv_t cclock;
++     mach_timespec_t mts;
++     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
++     clock_get_time(cclock, &mts);
++     mach_port_deallocate(mach_task_self(), cclock);
++     ts.tv_sec = mts.tv_sec;
++     ts.tv_nsec = mts.tv_nsec;
++#else
+     if ( ::clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts) )
+-        throw ::std::runtime_error("clock_gettime(CLOCK_PROCESS_CPUTIME_ID) failed");
+-        // If we expected this to work, don't silently ignore failures, because that would hide the problem and incur an unnecessarily system-call overhead. So if we ever observe this exception, we should probably add a suitable #ifdef .
+-        //TODO: clock_gettime(CLOCK_PROCESS_CPUTIME_ID) is not supported by native Windows. What about Cygwin? Should we #ifdef on CLOCK_PROCESS_CPUTIME_ID or on __linux__?
+-    return ts.tv_sec * 1000000000ll + ts.tv_nsec;
++          throw ::std::runtime_error("clock_gettime(CLOCK_PROCESS_CPUTIME_ID) failed");
++          // If we expected this to work, don't silently ignore failures, because that would hide the problem and incur an unnecessarily system-call overhead. So if we ever observe this exception, we should probably add a suitable #ifdef .
++          //TODO: clock_gettime(CLOCK_PROCESS_CPUTIME_ID) is not supported by native Windows. What about Cygwin? Should we #ifdef on CLOCK_PROCESS_CPUTIME_ID or on __linux__?
++#endif
++      return ts.tv_sec * 1000000000ll + ts.tv_nsec;
+ }
+ 
+ long long start_time, last_time;
+diff --git a/zcutil/build.sh b/zcutil/build.sh
+index 33baeae..93f6df8 100755
+--- a/zcutil/build.sh
++++ b/zcutil/build.sh
+@@ -35,10 +35,10 @@ fi
+ 
+ # Allow override to $CC and $CXX for porters. Most users will not need it.
+ if [[ -z "${CC-}" ]]; then
+-    CC=gcc
++    CC=/usr/local/opt/llvm/bin/clang
+ fi
+ if [[ -z "${CXX-}" ]]; then
+-    CXX=g++
++    CXX=/usr/local/opt/llvm/bin/clang++
+ fi
+ 
+ if [ "x$*" = 'x--help' ]
+@@ -130,7 +130,7 @@ eval "$CXX" --version
+ as --version
+ ld -v
+ 
+-HOST="$HOST" BUILD="$BUILD" NO_RUST="$RUST_ARG" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
++CC="$CC" CXX="$CXX" HOST="$HOST" BUILD="$BUILD" NO_RUST="$RUST_ARG" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
+ ./autogen.sh
+ CC="$CC" CXX="$CXX" ./configure  --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$RUST_ARG" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" --enable-werror CXXFLAGS='-Wno-undefined-var-template -g'
+ 
