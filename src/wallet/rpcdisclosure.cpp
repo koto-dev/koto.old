@@ -59,7 +59,7 @@ UniValue z_getpaymentdisclosure(const UniValue& params, bool fHelp)
             "3. \"output_index\"    (string, required) \n"
             "4. \"message\"         (string, optional) \n"
             "\nResult:\n"
-            "\"paymentdisclosure\"  (string) Hex data string, with \"zpd:\" prefix.\n"
+            "\"paymentdisclosure\"  (string) Hex data string, with \"kpd:\" prefix.\n"
             "\nExamples:\n"
             + HelpExampleCli("z_getpaymentdisclosure", "96f12882450429324d5f3b48630e3168220e49ab7b0f066e5c2935a6b88bb0f2 0 0 \"refund\"")
             + HelpExampleRpc("z_getpaymentdisclosure", "\"96f12882450429324d5f3b48630e3168220e49ab7b0f066e5c2935a6b88bb0f2\", 0, 0, \"refund\"")
@@ -160,10 +160,10 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
             "\nEXPERIMENTAL FEATURE\n"
             + strPaymentDisclosureDisabledMsg +
             "\nArguments:\n"
-            "1. \"paymentdisclosure\"     (string, required) Hex data string, with \"zpd:\" prefix.\n"
+            "1. \"paymentdisclosure\"     (string, required) Hex data string, with \"kpd:\" prefix.\n"
             "\nExamples:\n"
-            + HelpExampleCli("z_validatepaymentdisclosure", "\"zpd:706462ff004c561a0447ba2ec51184e6c204...\"")
-            + HelpExampleRpc("z_validatepaymentdisclosure", "\"zpd:706462ff004c561a0447ba2ec51184e6c204...\"")
+            + HelpExampleCli("z_validatepaymentdisclosure", "\"kpd:706462ff004c561a0447ba2ec51184e6c204...\"")
+            + HelpExampleRpc("z_validatepaymentdisclosure", "\"kpd:706462ff004c561a0447ba2ec51184e6c204...\"")
         );
 
     if (!fEnablePaymentDisclosure) {
@@ -174,7 +174,7 @@ UniValue z_validatepaymentdisclosure(const UniValue& params, bool fHelp)
 
     EnsureWalletIsUnlocked();
 
-    // Verify the payment disclosure input begins with "zpd:" prefix.
+    // Verify the payment disclosure input begins with "kpd:" prefix.
     string strInput = params[0].get_str();
     size_t pos = strInput.find(PAYMENT_DISCLOSURE_BLOB_STRING_PREFIX);
     if (pos != 0) {
