@@ -28,7 +28,7 @@
 
 #define PAYMENT_DISCLOSURE_VERSION_EXPERIMENTAL 0
 
-#define PAYMENT_DISCLOSURE_BLOB_STRING_PREFIX    "zpd:"
+#define PAYMENT_DISCLOSURE_BLOB_STRING_PREFIX    "kpd:"
 
 typedef JSOutPoint PaymentDisclosureKey;
 

@@ -175,10 +175,10 @@ class PaymentDisclosureTest (BitcoinTestFramework):
         assert_equal(result["message"], message)
         assert_equal(result["value"], output_value_sum)
 
-        # Confirm that payment disclosure begins with prefix zpd:
-        assert(pd.startswith("zpd:"))
+        # Confirm that payment disclosure begins with prefix kpd:
+        assert(pd.startswith("kpd:"))
 
-        # Confirm that payment disclosure without prefix zpd: fails validation
+        # Confirm that payment disclosure without prefix kpd: fails validation
         try:
             self.nodes[1].z_validatepaymentdisclosure(pd[4:])
             assert(False)
