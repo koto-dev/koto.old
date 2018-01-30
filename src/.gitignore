@@ -1,0 +1,6 @@
+/.libs
+/Makefile
+/Makefile.in
+/koto-cli
+/koto-tx
+/kotod
