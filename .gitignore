@@ -60,3 +60,11 @@ dkms.conf
 /src/test/data/*.h
 .deps
 .dirstamp
+/Makefile
+/Makefile.in
+/aclocal.m4
+/autom4te.cache/
+/config.status
+/configure
+/libtool
+/libzcashconsensus.pc
