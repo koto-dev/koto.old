@@ -56,3 +56,5 @@ dkms.conf
 
 
 # End of https://www.gitignore.io/api/c
+
+/src/test/data/*.h
