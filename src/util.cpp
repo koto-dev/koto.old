@@ -506,7 +506,7 @@ static boost::filesystem::path ZC_GetBaseParamsDir()
 #endif
 }
 
-const boost::filesystem::path &ZC_GetParamsDir()
+const boost::filesystem::path &ZC_GetParamsDir(bool fNetSpecific)
 {
     namespace fs = boost::filesystem;
 
