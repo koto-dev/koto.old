@@ -110,7 +110,7 @@ static inline bool error(const char* format)
     return false;
 }
 
-const boost::filesystem::path &ZC_GetParamsDir();
+const boost::filesystem::path &ZC_GetParamsDir(bool fNetSpecific = true);
 
 void PrintExceptionContinue(const std::exception *pex, const char* pszThread);
 void ParseParameters(int argc, const char*const argv[]);
