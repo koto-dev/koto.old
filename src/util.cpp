@@ -528,8 +528,6 @@ const boost::filesystem::path &ZC_GetParamsDir(bool fNetSpecific)
     } else {
         path = ZC_GetBaseParamsDir();
     }
-    if (fNetSpecific)
-        path /= BaseParams().DataDir();
 
     fs::create_directories(path);
 
