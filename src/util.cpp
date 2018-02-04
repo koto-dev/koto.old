@@ -519,8 +519,8 @@ const boost::filesystem::path &ZC_GetParamsDir(bool fNetSpecific)
     if (!path.empty())
         return path;
 
-    if (mapArgs.count("-zcparamdir")) {
-        path = fs::system_complete(mapArgs["-zcparamdir"]);
+    if (mapArgs.count("-zcparamsdir")) {
+        path = fs::system_complete(mapArgs["-zcparamsdir"]);
         if (!fs::is_directory(path)) {
             path = "";
             return path;
