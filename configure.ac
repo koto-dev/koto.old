@@ -188,9 +188,10 @@ fi
 ERROR_CXXFLAGS=
 if test "x$enable_werror" = "xyes"; then
   if test "x$CXXFLAG_WERROR" = "x"; then
-    AC_MSG_ERROR("enable-werror set but -Werror is not usable")
+    AC_MSG_WARN("enable-werror set but -Werror is not usable")
+  else
+    ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror"
   fi
-  ERROR_CXXFLAGS="$ERROR_CXXFLAGS -Werror"
 fi
 
 if test "x$CXXFLAGS_overridden" = "xno"; then
@@ -728,6 +729,9 @@ fi
 AX_CHECK_COMPILE_FLAG([-fwrapv],[CXXFLAGS="$CXXFLAGS -fwrapv"])
 AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],[CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"])
 AX_CHECK_COMPILE_FLAG([-Wno-builtin-declaration-mismatch],[CXXFLAGS="$CXXFLAGS -Wno-builtin-declaration-mismatch"],,[[$CXXFLAG_WERROR]])
+if test x$BUILD_OS = xdarwin; then
+  AX_CHECK_COMPILE_FLAG([-Wno-undefined-var-template],[CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template"],,[[$CXXFLAG_WERROR]])
+fi
 
 LIBZCASH_LIBS="-lgmp -lgmpxx -lboost_system-mt -lcrypto -lsodium $RUST_LIBS"
 
