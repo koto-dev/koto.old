@@ -519,7 +519,17 @@ const boost::filesystem::path &ZC_GetParamsDir()
     if (!path.empty())
         return path;
 
-    path = ZC_GetBaseParamsDir();
+    if (mapArgs.count("-zcparamsdir")) {
+        path = fs::system_complete(mapArgs["-zcparamsdir"]);
+        if (!fs::is_directory(path)) {
+            path = "";
+            return path;
+        }
+    } else {
+        path = ZC_GetBaseParamsDir();
+    }
+
+    fs::create_directories(path);
 
     return path;
 }
