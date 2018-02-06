@@ -587,6 +587,7 @@ void static BitcoinMiner()
 
             while (true) {
                     hash = pblock->GetPoWHash();
+                    solutionTargetChecks.increment();
                     if (UintToArith256(hash) <= hashTarget)
                     {
                         // Found a solution
