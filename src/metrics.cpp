@@ -227,9 +227,9 @@ int printStats(bool mining)
         std::cout << "           " << _("Block height") << " | " << height << std::endl;
     }
     std::cout << "            " << _("Connections") << " | " << connections << std::endl;
-    std::cout << "  " << _("Network solution rate") << " | " << netsolps << " Sol/s" << std::endl;
+    std::cout << "      " << _("Network Hash rate") << " | " << netsolps << " H/s" << std::endl;
     if (mining && miningTimer.running()) {
-        std::cout << "    " << _("Local solution rate") << " | " << strprintf("%.4f Sol/s", localsolps) << std::endl;
+        std::cout << "        " << _("Local Hash rate") << " | " << strprintf("%.4f H/s", localsolps) << std::endl;
         lines++;
     }
     std::cout << std::endl;
