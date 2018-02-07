@@ -4,7 +4,7 @@ Koto 1.0.14
 What is Koto?
 --------------
 
-[Koto](https://z.cash/) is fork of Zcash.
+[Koto](https://koto.cash/) is fork of Zcash.
 Based on Bitcoin's code, it intends to offer a far higher standard of privacy
 through a sophisticated zero-knowledge proving scheme that preserves
 confidentiality of transaction metadata. Technical details are available

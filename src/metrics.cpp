@@ -430,7 +430,7 @@ void setCursorPosition(int x, int y)
 void ThreadShowMetricsScreen()
 {
     // Make this thread recognisable as the metrics screen thread
-    RenameThread("zcash-metrics-screen");
+    RenameThread("koto-metrics-screen");
 
 #ifdef WIN32
     bool clearedAfterLoaded = false;
