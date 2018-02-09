@@ -59,7 +59,7 @@ EOF
 function fetch_failure {
     cat >&2 <<EOF
 
-Failed to fetch the Zcash zkSNARK parameters!
+Failed to fetch the Koto zkSNARK parameters!
 Try installing one of the following programs and make sure you're online:
 
  * ipfs
@@ -121,9 +121,9 @@ function main() {
     || exit_locked_error
 
     cat <<EOF
-Zcash - fetch-params.sh
+Koto - fetch-params.sh
 
-This script will fetch the Zcash zkSNARK parameters and verify their
+This script will fetch the Koto zkSNARK parameters and verify their
 integrity with sha256sum.
 
 If they already exist locally, it will exit now and do nothing else.
@@ -135,7 +135,7 @@ EOF
         mkdir -p "$PARAMS_DIR"
         README_PATH="$PARAMS_DIR/README"
         cat >> "$README_PATH" <<EOF
-This directory stores common Zcash zkSNARK parameters. Note that it is
+This directory stores common Koto zkSNARK parameters. Note that it is
 distinct from the daemon's -datadir argument because the parameters are
 large and may be shared across multiple distinct -datadir's such as when
 setting up test networks.

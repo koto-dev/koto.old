@@ -573,7 +573,7 @@ void static BitcoinMiner()
             CBlock *pblock = &pblocktemplate->block;
             IncrementExtraNonce(pblock, pindexPrev, nExtraNonce);
 
-            LogPrintf("Running ZcashMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
+            LogPrintf("Running KotoMiner with %u transactions in block (%u bytes)\n", pblock->vtx.size(),
                 ::GetSerializeSize(*pblock, SER_NETWORK, PROTOCOL_VERSION));
 
             //
@@ -587,6 +587,7 @@ void static BitcoinMiner()
 
             while (true) {
                     hash = pblock->GetPoWHash();
+                    solutionTargetChecks.increment();
                     if (UintToArith256(hash) <= hashTarget)
                     {
                         // Found a solution
