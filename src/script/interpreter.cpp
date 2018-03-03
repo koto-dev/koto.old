@@ -1058,13 +1058,13 @@ public:
 };
 
 const unsigned char ZCASH_PREVOUTS_HASH_PERSONALIZATION[crypto_generichash_blake2b_PERSONALBYTES] =
-    {'Z','c','a','s','h','P','r','e','v','o','u','t','H','a','s','h'};
+    {'K','o','t','o','_','P','r','e','v','o','u','t','H','a','s','h'};
 const unsigned char ZCASH_SEQUENCE_HASH_PERSONALIZATION[crypto_generichash_blake2b_PERSONALBYTES] =
-    {'Z','c','a','s','h','S','e','q','u','e','n','c','H','a','s','h'};
+    {'K','o','t','o','_','S','e','q','u','e','n','c','H','a','s','h'};
 const unsigned char ZCASH_OUTPUTS_HASH_PERSONALIZATION[crypto_generichash_blake2b_PERSONALBYTES] =
-    {'Z','c','a','s','h','O','u','t','p','u','t','s','H','a','s','h'};
+    {'K','o','t','o','_','O','u','t','p','u','t','s','H','a','s','h'};
 const unsigned char ZCASH_JOINSPLITS_HASH_PERSONALIZATION[crypto_generichash_blake2b_PERSONALBYTES] =
-    {'Z','c','a','s','h','J','S','p','l','i','t','s','H','a','s','h'};
+    {'K','o','t','o','_','J','S','p','l','i','t','s','H','a','s','h'};
 
 uint256 GetPrevoutHash(const CTransaction& txTo) {
     CBLAKE2bWriter ss(SER_GETHASH, 0, ZCASH_PREVOUTS_HASH_PERSONALIZATION);
@@ -1162,7 +1162,7 @@ uint256 SignatureHash(
 
         uint32_t leConsensusBranchId = htole32(consensusBranchId);
         unsigned char personalization[16] = {};
-        memcpy(personalization, "ZcashSigHash", 12);
+        memcpy(personalization, "Koto_SigHash", 12);
         memcpy(personalization+12, &leConsensusBranchId, 4);
 
         CBLAKE2bWriter ss(SER_GETHASH, 0, personalization);
