@@ -1,6 +1,6 @@
 Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?rev=174
 Upstream-Name: Koto
-Upstream-Contact: Koto Company <team@z.cash>
+Upstream-Contact: The Koto Developers
 Source: https://github.com/koto-dev/koto
 
 Files: *

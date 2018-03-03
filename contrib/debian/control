@@ -1,7 +1,7 @@
 Source: koto
 Section: utils
 Priority: optional
-Maintainer: Koto dev <team@z.cash>
+Maintainer: The Koto Developers
 Homepage: https://koto.cash
 Build-Depends: autoconf, automake, bsdmainutils, build-essential,
  git, g++-multilib, libc6-dev, libtool,

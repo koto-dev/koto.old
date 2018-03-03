@@ -1,193 +1,80 @@
-diff --git a/src/snark/AUTHORS b/src/snark/AUTHORS
-index 1b2d7a2..cdc8d66 100644
---- a/src/snark/AUTHORS
-+++ b/src/snark/AUTHORS
-@@ -17,3 +17,6 @@ External contributors:
-     Tadanori TERUYA
-     Sean Bowe
-     Daira Hopwood
-+    @mugatu on forum.z.cash
-+    David Mercer
-+    Joshua Yabut
 diff --git a/src/snark/Makefile b/src/snark/Makefile
-index cceffb9..ac86490 100644
+index b865f99..d89e2d9 100644
 --- a/src/snark/Makefile
 +++ b/src/snark/Makefile
-@@ -6,6 +6,13 @@
- #* @copyright  MIT license (see LICENSE file)
- #*******************************************************************************/
- 
-+# Determine building operating system
-+ifeq ($(OS),Windows_NT)
-+    uname_S := Windows
-+else
-+    uname_S := $(shell uname -s)
-+endif
-+
- # To override these, use "make OPTFLAGS=..." etc.
- CURVE = BN128
- OPTFLAGS = -O2 -march=native -mtune=native
-@@ -19,7 +26,9 @@ DEPINST = depinst
- 
- CXXFLAGS += -I$(DEPINST)/include -Isrc
- LDFLAGS += -L$(DEPINST)/lib -Wl,-rpath,$(DEPINST)/lib
--LDLIBS += -lgmpxx -lgmp -lboost_program_options-mt -lsodium
-+LDLIBS += -lgmpxx -lgmp -lboost_program_options
-+# OpenSSL and its dependencies (needed explicitly for static builds):
-+LDLIBS += -lcrypto -ldl -lz
- # List of .a files to include within libsnark.a and libsnark.so:
- AR_LIBS =
- # List of library files to install:
-@@ -68,14 +77,20 @@ endif
+@@ -68,19 +68,25 @@ endif
  
  # FIXME: most of these are broken due to removed code.
  DISABLED_EXECUTABLES = \
-+	src/algebra/curves/tests/test_bilinearity \
-+	src/algebra/curves/tests/test_groups \
-+	src/algebra/fields/tests/test_fields \
- 	src/common/routing_algorithms/profiling/profile_routing_algorithms \
- 	src/common/routing_algorithms/tests/test_routing_algorithms \
- 	src/gadgetlib1/gadgets/cpu_checkers/fooram/examples/test_fooram \
- 	src/gadgetlib1/gadgets/hashes/knapsack/tests/test_knapsack_gadget \
-+	src/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget \
-+	src/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets \
- 	src/gadgetlib1/gadgets/routing/profiling/profile_routing_gadgets \
- 	src/gadgetlib1/gadgets/set_commitment/tests/test_set_commitment_gadget \
- 	src/gadgetlib1/gadgets/verifiers/tests/test_r1cs_ppzksnark_verifier_gadget \
- 	src/reductions/ram_to_r1cs/examples/demo_arithmetization \
-+	src/relations/arithmetic_programs/qap/tests/test_qap \
- 	src/relations/arithmetic_programs/ssp/tests/test_ssp \
- 	src/zk_proof_systems/pcd/r1cs_pcd/r1cs_mp_ppzkpcd/profiling/profile_r1cs_mp_ppzkpcd \
- 	src/zk_proof_systems/pcd/r1cs_pcd/r1cs_mp_ppzkpcd/tests/test_r1cs_mp_ppzkpcd \
-@@ -86,6 +101,7 @@ DISABLED_EXECUTABLES = \
- 	src/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/profiling/profile_r1cs_gg_ppzksnark \
- 	src/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/tests/test_r1cs_gg_ppzksnark \
- 	src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/profiling/profile_r1cs_ppzksnark \
-+	src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark \
- 	src/zk_proof_systems/ppzksnark/ram_ppzksnark/examples/demo_ram_ppzksnark \
- 	src/zk_proof_systems/ppzksnark/ram_ppzksnark/examples/demo_ram_ppzksnark_generator \
- 	src/zk_proof_systems/ppzksnark/ram_ppzksnark/examples/demo_ram_ppzksnark_prover \
-@@ -99,26 +115,16 @@ DISABLED_EXECUTABLES = \
- 	src/zk_proof_systems/zksnark/ram_zksnark/profiling/profile_ram_zksnark \
- 	src/zk_proof_systems/zksnark/ram_zksnark/tests/test_ram_zksnark
++	libsnark/algebra/curves/tests/test_bilinearity \
++	libsnark/algebra/curves/tests/test_groups \
++	libsnark/algebra/fields/tests/test_fields \
+ 	libsnark/common/routing_algorithms/profiling/profile_routing_algorithms \
+ 	libsnark/common/routing_algorithms/tests/test_routing_algorithms \
+ 	libsnark/gadgetlib1/gadgets/cpu_checkers/fooram/examples/test_fooram \
+ 	libsnark/gadgetlib1/gadgets/hashes/knapsack/tests/test_knapsack_gadget \
++	libsnark/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget \
++	libsnark/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets \
+ 	libsnark/gadgetlib1/gadgets/routing/profiling/profile_routing_gadgets \
+ 	libsnark/gadgetlib1/gadgets/set_commitment/tests/test_set_commitment_gadget \
+ 	libsnark/gadgetlib1/gadgets/verifiers/tests/test_r1cs_ppzksnark_verifier_gadget \
+ 	libsnark/reductions/ram_to_r1cs/examples/demo_arithmetization \
++	libsnark/relations/arithmetic_programs/qap/tests/test_qap \
+ 	libsnark/relations/arithmetic_programs/ssp/tests/test_ssp \
+ 	libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_mp_ppzkpcd/profiling/profile_r1cs_mp_ppzkpcd \
+ 	libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_mp_ppzkpcd/tests/test_r1cs_mp_ppzkpcd \
+ 	libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_sp_ppzkpcd/profiling/profile_r1cs_sp_ppzkpcd \
+-	libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_sp_ppzkpcd/tests/test_r1cs_sp_ppzkpcd \
++	libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark	libsnark/zk_proof_systems/pcd/r1cs_pcd/r1cs_sp_ppzkpcd/tests/test_r1cs_sp_ppzkpcd \
+ 	libsnark/zk_proof_systems/ppzksnark/bacs_ppzksnark/profiling/profile_bacs_ppzksnark \
+ 	libsnark/zk_proof_systems/ppzksnark/bacs_ppzksnark/tests/test_bacs_ppzksnark \
+ 	libsnark/zk_proof_systems/ppzksnark/r1cs_gg_ppzksnark/profiling/profile_r1cs_gg_ppzksnark \
+@@ -99,26 +105,16 @@ DISABLED_EXECUTABLES = \
+ 	libsnark/zk_proof_systems/zksnark/ram_zksnark/profiling/profile_ram_zksnark \
+ 	libsnark/zk_proof_systems/zksnark/ram_zksnark/tests/test_ram_zksnark
  
 -EXECUTABLES =
 +EXECUTABLES = \
-+	src/algebra/fields/tests/test_bigint
++	libsnark/algebra/fields/tests/test_bigint
  
 -EXECUTABLES_WITH_GTEST =
 +EXECUTABLES_WITH_GTEST = \
-+	src/gadgetlib2/examples/tutorial \
-+	src/gadgetlib2/tests/gadgetlib2_test
++	libsnark/gadgetlib2/examples/tutorial \
++	libsnark/gadgetlib2/tests/gadgetlib2_test
  
  EXECUTABLES_WITH_SUPERCOP = \
- 	src/zk_proof_systems/ppzkadsnark/r1cs_ppzkadsnark/examples/demo_r1cs_ppzkadsnark
+ 	libsnark/zk_proof_systems/ppzkadsnark/r1cs_ppzkadsnark/examples/demo_r1cs_ppzkadsnark
  
--GTEST_TESTS = src/gtests
+-GTEST_TESTS = libsnark/gtests
 -
 -GTEST_SRCS = \
--	src/algebra/curves/tests/test_bilinearity.cpp \
--	src/algebra/curves/tests/test_groups.cpp \
--	src/algebra/fields/tests/test_bigint.cpp \
--	src/algebra/fields/tests/test_fields.cpp \
--	src/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp \
--	src/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp \
--	src/relations/arithmetic_programs/qap/tests/test_qap.cpp \
--	src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp \
--	src/gtests.cpp
+-	libsnark/algebra/curves/tests/test_bilinearity.cpp \
+-	libsnark/algebra/curves/tests/test_groups.cpp \
+-	libsnark/algebra/fields/tests/test_bigint.cpp \
+-	libsnark/algebra/fields/tests/test_fields.cpp \
+-	libsnark/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp \
+-	libsnark/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp \
+-	libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp \
+-	libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp \
+-	libsnark/gtests.cpp
 -
  DOCS = README.html
  
  LIBSNARK_A = libsnark.a
-@@ -169,10 +175,9 @@ endif
- 
- LIB_OBJS  =$(patsubst %.cpp,%.o,$(LIB_SRCS))
- EXEC_OBJS =$(patsubst %,%.o,$(EXECUTABLES) $(EXECUTABLES_WITH_GTEST) $(EXECUTABLES_WITH_SUPERCOP))
--GTEST_OBJS =$(patsubst %.cpp,%.o,$(GTEST_SRCS))
- 
- all: \
--     $(if $(NO_GTEST),,$(EXECUTABLES_WITH_GTEST) $(GTEST_TESTS)) \
-+     $(if $(NO_GTEST),,$(EXECUTABLES_WITH_GTEST)) \
-      $(if $(NO_SUPERCOP),,$(EXECUTABLES_WITH_SUPERCOP)) \
-      $(EXECUTABLES) \
-      $(if $(NO_DOCS),,doc)
-@@ -185,9 +190,9 @@ $(DEPINST_EXISTS):
- 	touch $@
- 
- # In order to detect changes to #include dependencies. -MMD below generates a .d file for each .o file. Include the .d file.
---include $(patsubst %.o,%.d, $(LIB_OBJS) $(GTEST_OBJS) $(EXEC_OBJS) )
-+-include $(patsubst %.o,%.d, $(LIB_OBJS) $(EXEC_OBJS) )
- 
--$(LIB_OBJS) $(if $(NO_GTEST),,$(GTEST_OBJS)) $(EXEC_OBJS): %.o: %.cpp
-+$(LIB_OBJS) $(EXEC_OBJS): %.o: %.cpp
- 	$(CXX) -o $@   $< -c -MMD $(CXXFLAGS)
- 
- LIBGTEST_A = $(DEPINST)/lib/libgtest.a
-@@ -198,6 +203,14 @@ $(LIBGTEST_A): $(GTESTDIR)/src/gtest-all.cc $(DEPINST_EXISTS)
- 
- # libsnark.a will contains all of our relevant object files, and we also mash in the .a files of relevant dependencies built by ./prepare-depends.sh
- $(LIBSNARK_A): $(LIB_OBJS) $(AR_LIBS)
-+ifeq ($(uname_S), Darwin)
-+	( \
-+	  echo " $(LIBSNARK_A)"; \
-+	  echo " $(LIB_OBJS)"; \
-+	  if [ -n "$(AR_LIBS)" ]; then for AR_LIB in $(AR_LIBS); do echo addlib $$AR_LIB; done; fi; \
-+	) | xargs  $(AR) -r
-+	 $(AR) s $(LIBSNARK_A)
-+else
- 	( \
- 	  echo "create $(LIBSNARK_A)"; \
- 	  echo "addmod $(LIB_OBJS)"; \
-@@ -206,6 +219,7 @@ $(LIBSNARK_A): $(LIB_OBJS) $(AR_LIBS)
- 	  echo "end"; \
- 	) | $(AR) -M
- 	$(AR) s $(LIBSNARK_A)
-+endif
- 
- libsnark.so: $(LIBSNARK_A) $(DEPINST_EXISTS)
- 	$(CXX) -o $@   --shared -Wl,--whole-archive $(LIBSNARK_A) $(CXXFLAGS) $(LDFLAGS) -Wl,--no-whole-archive $(LDLIBS)
-@@ -227,9 +241,6 @@ $(EXECUTABLES_WITH_GTEST): %: %.o $(LIBSNARK_A) $(if $(COMPILE_GTEST),$(LIBGTEST
+@@ -222,9 +218,6 @@ $(EXECUTABLES_WITH_GTEST): %: %.o $(LIBSNARK_A) $(if $(COMPILE_LIBGTEST),$(LIBGT
  $(EXECUTABLES_WITH_SUPERCOP): %: %.o $(LIBSNARK_A) $(DEPINST_EXISTS)
  	$(CXX) -o $@   $@.o $(LIBSNARK_A) $(CXXFLAGS) $(LDFLAGS) $(SUPERCOP_LDLIBS) $(LDLIBS)
  
--$(GTEST_TESTS): %: $(GTEST_OBJS) $(LIBSNARK_A) $(if $(COMPILE_GTEST),$(LIBGTEST_A)) $(DEPINST_EXISTS)
+-$(GTEST_TESTS): %: $(GTEST_OBJS) $(LIBSNARK_A) $(if $(COMPILE_LIBGTEST),$(LIBGTEST_A)) $(DEPINST_EXISTS)
 -	$(CXX) -o $@   $(GTEST_OBJS) $(LIBSNARK_A) $(CXXFLAGS) $(LDFLAGS) $(GTEST_LDLIBS) $(LDLIBS)
 -
  
  ifeq ($(STATIC),1)
  LIB_FILE = $(LIBSNARK_A)
-@@ -258,13 +269,8 @@ $(HEADERS_DEST): $(PREFIX)/include/libsnark/%: src/%
- install: $(INSTALL_LIBS) $(HEADERS_DEST) $(DEPINST_EXISTS)
- 	mkdir -p $(PREFIX)/lib
- 	cp -v $(INSTALL_LIBS) $(PREFIX)/lib/
--ifneq ($(NO_COPY_DEPINST),1)
- 	cp -rv $(DEPINST)/include $(PREFIX)
- endif
--endif
--
--check: $(GTEST_TESTS)
--	$(GTEST_TESTS)
- 
- doxy:
- 	doxygen doxygen.conf
-@@ -272,10 +278,10 @@ doxy:
- # Clean generated files, except locally-compiled dependencies
- clean:
- 	$(RM) \
--		$(LIB_OBJS) $(GTEST_OBJS) $(EXEC_OBJS) \
--		$(EXECUTABLES) $(EXECUTABLES_WITH_GTEST) $(EXECUTABLES_WITH_SUPERCOP) $(GTEST_TESTS) \
-+		$(LIB_OBJS) $(EXEC_OBJS) \
-+		$(EXECUTABLES) $(EXECUTABLES_WITH_GTEST) $(EXECUTABLES_WITH_SUPERCOP) \
- 		$(DOCS) \
--		${patsubst %.o,%.d,${LIB_OBJS} ${GTEST_OBJS} ${EXEC_OBJS}} \
-+		${patsubst %.o,%.d,${LIB_OBJS} ${EXEC_OBJS}} \
- 		libsnark.so $(LIBSNARK_A) \
- 	$(RM) -fr doxygen/ \
- 	$(RM) $(LIBGTEST_A) $(DEPINST)/lib/gtest-all.o
-diff --git a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.cpp b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 index bf7f43d..7f329d6 100644
---- a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.cpp
-+++ b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp
 @@ -6,16 +6,17 @@
   *****************************************************************************/
  
@@ -219,10 +106,10 @@ index bf7f43d..7f329d6 100644
  #endif
  
      // handle special cases having to do with O
-diff --git a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.hpp b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.hpp
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp
 index da11a2e..567f2fa 100644
---- a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.hpp
-+++ b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g1.hpp
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp
 @@ -20,11 +20,11 @@ std::istream& operator>>(std::istream &, alt_bn128_G1&);
  class alt_bn128_G1 {
  public:
@@ -239,10 +126,10 @@ index da11a2e..567f2fa 100644
      static alt_bn128_G1 G1_zero;
      static alt_bn128_G1 G1_one;
  
-diff --git a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.cpp b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp
 index c4152e4..98f4710 100644
---- a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.cpp
-+++ b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp
 @@ -6,16 +6,17 @@
   *****************************************************************************/
  
@@ -274,10 +161,10 @@ index c4152e4..98f4710 100644
  #endif
  
      // handle special cases having to do with O
-diff --git a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.hpp b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.hpp
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp
 index a996a2d..57bad1a 100644
---- a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.hpp
-+++ b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_g2.hpp
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp
 @@ -20,11 +20,11 @@ std::istream& operator>>(std::istream &, alt_bn128_G2&);
  class alt_bn128_G2 {
  public:
@@ -294,10 +181,10 @@ index a996a2d..57bad1a 100644
      static alt_bn128_G2 G2_zero;
      static alt_bn128_G2 G2_one;
  
-diff --git a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_pairing.cpp b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
 index db556c5..07b6a8c 100644
---- a/src/snark/src/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
-+++ b/src/snark/src/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
 @@ -324,7 +324,7 @@ alt_bn128_ate_G2_precomp alt_bn128_ate_precompute_G2(const alt_bn128_G2& Q)
      bool found_one = false;
      alt_bn128_ate_ell_coeffs c;
@@ -325,10 +212,10 @@ index db556c5..07b6a8c 100644
      {
          const bool bit = loop_count.test_bit(i);
          if (!found_one)
-diff --git a/src/snark/src/algebra/curves/curve_utils.tcc b/src/snark/src/algebra/curves/curve_utils.tcc
+diff --git a/src/snark/libsnark/algebra/curves/curve_utils.tcc b/src/snark/libsnark/algebra/curves/curve_utils.tcc
 index 251d75d..38140cd 100644
---- a/src/snark/src/algebra/curves/curve_utils.tcc
-+++ b/src/snark/src/algebra/curves/curve_utils.tcc
+--- a/src/snark/libsnark/algebra/curves/curve_utils.tcc
++++ b/src/snark/libsnark/algebra/curves/curve_utils.tcc
 @@ -16,7 +16,7 @@ GroupT scalar_mul(const GroupT &base, const bigint<m> &scalar)
      GroupT result = GroupT::zero();
  
@@ -338,10 +225,10 @@ index 251d75d..38140cd 100644
      {
          if (found_one)
          {
-diff --git a/src/snark/src/algebra/curves/tests/test_bilinearity.cpp b/src/snark/src/algebra/curves/tests/test_bilinearity.cpp
+diff --git a/src/snark/libsnark/algebra/curves/tests/test_bilinearity.cpp b/src/snark/libsnark/algebra/curves/tests/test_bilinearity.cpp
 index fe6593b..18e68f7 100644
---- a/src/snark/src/algebra/curves/tests/test_bilinearity.cpp
-+++ b/src/snark/src/algebra/curves/tests/test_bilinearity.cpp
+--- a/src/snark/libsnark/algebra/curves/tests/test_bilinearity.cpp
++++ b/src/snark/libsnark/algebra/curves/tests/test_bilinearity.cpp
 @@ -4,13 +4,17 @@
   *             and contributors (see AUTHORS).
   * @copyright  MIT license (see LICENSE file)
@@ -424,10 +311,10 @@ index fe6593b..18e68f7 100644
      alt_bn128_pp::init_public_params();
      pairing_test<alt_bn128_pp>();
      double_miller_loop_test<alt_bn128_pp>();
-diff --git a/src/snark/src/algebra/curves/tests/test_groups.cpp b/src/snark/src/algebra/curves/tests/test_groups.cpp
+diff --git a/src/snark/libsnark/algebra/curves/tests/test_groups.cpp b/src/snark/libsnark/algebra/curves/tests/test_groups.cpp
 index 7bb7c31..4f64334 100644
---- a/src/snark/src/algebra/curves/tests/test_groups.cpp
-+++ b/src/snark/src/algebra/curves/tests/test_groups.cpp
+--- a/src/snark/libsnark/algebra/curves/tests/test_groups.cpp
++++ b/src/snark/libsnark/algebra/curves/tests/test_groups.cpp
 @@ -5,14 +5,15 @@
   * @copyright  MIT license (see LICENSE file)
   *****************************************************************************/
@@ -614,10 +501,10 @@ index 7bb7c31..4f64334 100644
      alt_bn128_pp::init_public_params();
      test_group<G1<alt_bn128_pp> >();
      test_output<G1<alt_bn128_pp> >();
-diff --git a/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain.tcc b/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain.tcc
+diff --git a/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain.tcc b/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain.tcc
 index d315e83..16dcd54 100644
---- a/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain.tcc
-+++ b/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain.tcc
+--- a/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain.tcc
++++ b/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain.tcc
 @@ -15,15 +15,16 @@
  #define BASIC_RADIX2_DOMAIN_TCC_
  
@@ -664,10 +551,10 @@ index d315e83..16dcd54 100644
      H[this->m] += coeff;
      H[0] -= coeff;
  }
-diff --git a/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc b/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
+diff --git a/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc b/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
 index 138b82d..f42e424 100644
---- a/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
-+++ b/src/snark/src/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
+--- a/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
++++ b/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
 @@ -21,6 +21,7 @@
  #include "algebra/fields/field_utils.hpp"
  #include "common/profiling.hpp"
@@ -735,10 +622,10 @@ index 138b82d..f42e424 100644
  
      const FieldT omega = get_root_of_unity<FieldT>(m);
  
-diff --git a/src/snark/src/algebra/evaluation_domain/evaluation_domain.tcc b/src/snark/src/algebra/evaluation_domain/evaluation_domain.tcc
+diff --git a/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc b/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc
 index 8e3ea7a..d0e28c8 100644
---- a/src/snark/src/algebra/evaluation_domain/evaluation_domain.tcc
-+++ b/src/snark/src/algebra/evaluation_domain/evaluation_domain.tcc
+--- a/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc
++++ b/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc
 @@ -22,15 +22,16 @@
  #include <cassert>
  #include "algebra/fields/field_utils.hpp"
@@ -808,10 +695,10 @@ index 8e3ea7a..d0e28c8 100644
  
      FieldT num = FieldT::one();
      FieldT denom = FieldT::one();
-diff --git a/src/snark/src/algebra/exponentiation/exponentiation.hpp b/src/snark/src/algebra/exponentiation/exponentiation.hpp
+diff --git a/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp b/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp
 index a8a2c92..836ebf0 100644
---- a/src/snark/src/algebra/exponentiation/exponentiation.hpp
-+++ b/src/snark/src/algebra/exponentiation/exponentiation.hpp
+--- a/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp
++++ b/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp
 @@ -22,7 +22,7 @@ template<typename FieldT, mp_size_t m>
  FieldT power(const FieldT &base, const bigint<m> &exponent);
  
@@ -821,10 +708,10 @@ index a8a2c92..836ebf0 100644
  
  } // libsnark
  
-diff --git a/src/snark/src/algebra/exponentiation/exponentiation.tcc b/src/snark/src/algebra/exponentiation/exponentiation.tcc
+diff --git a/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc b/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc
 index dd557eb..7ac3bf5 100644
---- a/src/snark/src/algebra/exponentiation/exponentiation.tcc
-+++ b/src/snark/src/algebra/exponentiation/exponentiation.tcc
+--- a/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc
++++ b/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc
 @@ -25,7 +25,7 @@ FieldT power(const FieldT &base, const bigint<m> &exponent)
  
      bool found_one = false;
@@ -843,10 +730,10 @@ index dd557eb..7ac3bf5 100644
  {
      return power<FieldT>(base, bigint<1>(exponent));
  }
-diff --git a/src/snark/src/algebra/fields/bigint.hpp b/src/snark/src/algebra/fields/bigint.hpp
+diff --git a/src/snark/libsnark/algebra/fields/bigint.hpp b/src/snark/libsnark/algebra/fields/bigint.hpp
 index ff00dd5..dc47a7e 100644
---- a/src/snark/src/algebra/fields/bigint.hpp
-+++ b/src/snark/src/algebra/fields/bigint.hpp
+--- a/src/snark/libsnark/algebra/fields/bigint.hpp
++++ b/src/snark/libsnark/algebra/fields/bigint.hpp
 @@ -33,7 +33,7 @@ public:
      mp_limb_t data[n] = {0};
  
@@ -865,10 +752,10 @@ index ff00dd5..dc47a7e 100644
      void to_mpz(mpz_t r) const;
      bool test_bit(const std::size_t bitno) const;
  
-diff --git a/src/snark/src/algebra/fields/bigint.tcc b/src/snark/src/algebra/fields/bigint.tcc
-index f81addf..1faa4f9 100644
---- a/src/snark/src/algebra/fields/bigint.tcc
-+++ b/src/snark/src/algebra/fields/bigint.tcc
+diff --git a/src/snark/libsnark/algebra/fields/bigint.tcc b/src/snark/libsnark/algebra/fields/bigint.tcc
+index c1777ad..575792b 100644
+--- a/src/snark/libsnark/algebra/fields/bigint.tcc
++++ b/src/snark/libsnark/algebra/fields/bigint.tcc
 @@ -13,13 +13,14 @@
  #include <climits>
  #include <cstring>
@@ -978,10 +865,10 @@ index f81addf..1faa4f9 100644
  
      delete[] s_copy;
  #endif
-diff --git a/src/snark/src/algebra/fields/field_utils.hpp b/src/snark/src/algebra/fields/field_utils.hpp
+diff --git a/src/snark/libsnark/algebra/fields/field_utils.hpp b/src/snark/libsnark/algebra/fields/field_utils.hpp
 index a07ecfe..8358e48 100644
---- a/src/snark/src/algebra/fields/field_utils.hpp
-+++ b/src/snark/src/algebra/fields/field_utils.hpp
+--- a/src/snark/libsnark/algebra/fields/field_utils.hpp
++++ b/src/snark/libsnark/algebra/fields/field_utils.hpp
 @@ -16,13 +16,13 @@ namespace libsnark {
  
  // returns root of unity of order n (for n a power of 2), if one exists
@@ -1008,10 +895,10 @@ index a07ecfe..8358e48 100644
  
  template<typename FieldT>
  FieldT convert_bit_vector_to_field_element(const bit_vector &v);
-diff --git a/src/snark/src/algebra/fields/field_utils.tcc b/src/snark/src/algebra/fields/field_utils.tcc
+diff --git a/src/snark/libsnark/algebra/fields/field_utils.tcc b/src/snark/libsnark/algebra/fields/field_utils.tcc
 index 13197b2..a092860 100644
---- a/src/snark/src/algebra/fields/field_utils.tcc
-+++ b/src/snark/src/algebra/fields/field_utils.tcc
+--- a/src/snark/libsnark/algebra/fields/field_utils.tcc
++++ b/src/snark/libsnark/algebra/fields/field_utils.tcc
 @@ -11,6 +11,7 @@
  #define FIELD_UTILS_TCC_
  
@@ -1121,10 +1008,10 @@ index 13197b2..a092860 100644
      {
          const FieldT old_el = vec[i];
          vec[i] = acc_inverse * prod[i];
-diff --git a/src/snark/src/algebra/fields/fp.hpp b/src/snark/src/algebra/fields/fp.hpp
+diff --git a/src/snark/libsnark/algebra/fields/fp.hpp b/src/snark/libsnark/algebra/fields/fp.hpp
 index a498683..384e574 100644
---- a/src/snark/src/algebra/fields/fp.hpp
-+++ b/src/snark/src/algebra/fields/fp.hpp
+--- a/src/snark/libsnark/algebra/fields/fp.hpp
++++ b/src/snark/libsnark/algebra/fields/fp.hpp
 @@ -44,15 +44,15 @@ public:
      static const mp_size_t num_limbs = n;
      static const constexpr bigint<n>& mod = modulus;
@@ -1231,10 +1118,10 @@ index a498683..384e574 100644
  
  template<mp_size_t n, const bigint<n>& modulus>
  bigint<n> Fp_model<n, modulus>::t;
-diff --git a/src/snark/src/algebra/fields/fp.tcc b/src/snark/src/algebra/fields/fp.tcc
+diff --git a/src/snark/libsnark/algebra/fields/fp.tcc b/src/snark/libsnark/algebra/fields/fp.tcc
 index 566e993..3d220e2 100644
---- a/src/snark/src/algebra/fields/fp.tcc
-+++ b/src/snark/src/algebra/fields/fp.tcc
+--- a/src/snark/libsnark/algebra/fields/fp.tcc
++++ b/src/snark/libsnark/algebra/fields/fp.tcc
 @@ -173,13 +173,13 @@ void Fp_model<n,modulus>::mul_reduce(const bigint<n> &other)
              /* calculate res = res + k * mod * b^i */
              mp_limb_t carryout = mpn_addmul_1(res+i, modulus.data, n, k);
@@ -1385,10 +1272,10 @@ index 566e993..3d220e2 100644
          Fp_model<n,modulus> b2m = b;
          while (b2m != one)
          {
-diff --git a/src/snark/src/algebra/fields/fp12_2over3over2.hpp b/src/snark/src/algebra/fields/fp12_2over3over2.hpp
+diff --git a/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp b/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp
 index 1de9d88..69d057a 100644
---- a/src/snark/src/algebra/fields/fp12_2over3over2.hpp
-+++ b/src/snark/src/algebra/fields/fp12_2over3over2.hpp
+--- a/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp
++++ b/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp
 @@ -66,7 +66,7 @@ public:
      Fp12_2over3over2_model squared_karatsuba() const;
      Fp12_2over3over2_model squared_complex() const;
@@ -1407,10 +1294,10 @@ index 1de9d88..69d057a 100644
  
      friend std::ostream& operator<< <n, modulus>(std::ostream &out, const Fp12_2over3over2_model<n, modulus> &el);
      friend std::istream& operator>> <n, modulus>(std::istream &in, Fp12_2over3over2_model<n, modulus> &el);
-diff --git a/src/snark/src/algebra/fields/fp12_2over3over2.tcc b/src/snark/src/algebra/fields/fp12_2over3over2.tcc
+diff --git a/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc b/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc
 index 2fbc0b6..d985d68 100644
---- a/src/snark/src/algebra/fields/fp12_2over3over2.tcc
-+++ b/src/snark/src/algebra/fields/fp12_2over3over2.tcc
+--- a/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc
++++ b/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc
 @@ -156,7 +156,7 @@ Fp12_2over3over2_model<n,modulus> Fp12_2over3over2_model<n,modulus>::inverse() c
  }
  
@@ -1449,10 +1336,10 @@ index 2fbc0b6..d985d68 100644
      in >> s;
  
      char b;
-diff --git a/src/snark/src/algebra/fields/fp2.hpp b/src/snark/src/algebra/fields/fp2.hpp
+diff --git a/src/snark/libsnark/algebra/fields/fp2.hpp b/src/snark/libsnark/algebra/fields/fp2.hpp
 index f077269..f194f5e 100644
---- a/src/snark/src/algebra/fields/fp2.hpp
-+++ b/src/snark/src/algebra/fields/fp2.hpp
+--- a/src/snark/libsnark/algebra/fields/fp2.hpp
++++ b/src/snark/libsnark/algebra/fields/fp2.hpp
 @@ -37,7 +37,7 @@ public:
      typedef Fp_model<n, modulus> my_Fp;
  
@@ -1489,10 +1376,10 @@ index f077269..f194f5e 100644
  
  template<mp_size_t n, const bigint<n>& modulus>
  bigint<2*n> Fp2_model<n, modulus>::t;
-diff --git a/src/snark/src/algebra/fields/fp2.tcc b/src/snark/src/algebra/fields/fp2.tcc
+diff --git a/src/snark/libsnark/algebra/fields/fp2.tcc b/src/snark/libsnark/algebra/fields/fp2.tcc
 index 1632a04..84aa303 100644
---- a/src/snark/src/algebra/fields/fp2.tcc
-+++ b/src/snark/src/algebra/fields/fp2.tcc
+--- a/src/snark/libsnark/algebra/fields/fp2.tcc
++++ b/src/snark/libsnark/algebra/fields/fp2.tcc
 @@ -136,7 +136,7 @@ Fp2_model<n,modulus> Fp2_model<n,modulus>::inverse() const
  }
  
@@ -1529,88 +1416,10 @@ index 1632a04..84aa303 100644
      in >> s;
  
      char b;
-diff --git a/src/snark/src/algebra/fields/fp3.hpp b/src/snark/src/algebra/fields/fp3.hpp
-index 53b178a..ce74cd9 100644
---- a/src/snark/src/algebra/fields/fp3.hpp
-+++ b/src/snark/src/algebra/fields/fp3.hpp
-@@ -37,7 +37,7 @@ public:
-     typedef Fp_model<n, modulus> my_Fp;
- 
-     static bigint<3*n> euler; // (modulus^3-1)/2
--    static size_t s;       // modulus^3 = 2^s * t + 1
-+    static uint64_t s;       // modulus^3 = 2^s * t + 1
-     static bigint<3*n> t;  // with t odd
-     static bigint<3*n> t_minus_1_over_2; // (t-1)/2
-     static my_Fp non_residue; // X^6-non_residue irreducible over Fp; used for constructing Fp3 = Fp[X] / (X^3 - non_residue)
-@@ -67,13 +67,13 @@ public:
-     Fp3_model operator-() const;
-     Fp3_model squared() const;
-     Fp3_model inverse() const;
--    Fp3_model Frobenius_map(unsigned long power) const;
-+    Fp3_model Frobenius_map(uint64_t power) const;
-     Fp3_model sqrt() const; // HAS TO BE A SQUARE (else does not terminate)
- 
-     template<mp_size_t m>
-     Fp3_model operator^(const bigint<m> &other) const;
- 
--    static size_t size_in_bits() { return 3*my_Fp::size_in_bits(); }
-+    static uint64_t size_in_bits() { return 3*my_Fp::size_in_bits(); }
-     static bigint<n> base_field_char() { return modulus; }
- 
-     friend std::ostream& operator<< <n, modulus>(std::ostream &out, const Fp3_model<n, modulus> &el);
-@@ -93,7 +93,7 @@ template<mp_size_t n, const bigint<n>& modulus>
- bigint<3*n> Fp3_model<n, modulus>::euler;
- 
- template<mp_size_t n, const bigint<n>& modulus>
--size_t Fp3_model<n, modulus>::s;
-+uint64_t Fp3_model<n, modulus>::s;
- 
- template<mp_size_t n, const bigint<n>& modulus>
- bigint<3*n> Fp3_model<n, modulus>::t;
-diff --git a/src/snark/src/algebra/fields/fp3.tcc b/src/snark/src/algebra/fields/fp3.tcc
-index 590a2a9..e531530 100644
---- a/src/snark/src/algebra/fields/fp3.tcc
-+++ b/src/snark/src/algebra/fields/fp3.tcc
-@@ -137,7 +137,7 @@ Fp3_model<n,modulus> Fp3_model<n,modulus>::inverse() const
- }
- 
- template<mp_size_t n, const bigint<n>& modulus>
--Fp3_model<n,modulus> Fp3_model<n,modulus>::Frobenius_map(unsigned long power) const
-+Fp3_model<n,modulus> Fp3_model<n,modulus>::Frobenius_map(uint64_t power) const
- {
-     return Fp3_model<n,modulus>(c0,
-                                 Frobenius_coeffs_c1[power % 3] * c1,
-@@ -149,7 +149,7 @@ Fp3_model<n,modulus> Fp3_model<n,modulus>::sqrt() const
- {
-     Fp3_model<n,modulus> one = Fp3_model<n,modulus>::one();
- 
--    size_t v = Fp3_model<n,modulus>::s;
-+    uint64_t v = Fp3_model<n,modulus>::s;
-     Fp3_model<n,modulus> z = Fp3_model<n,modulus>::nqr_to_t;
-     Fp3_model<n,modulus> w = (*this)^Fp3_model<n,modulus>::t_minus_1_over_2;
-     Fp3_model<n,modulus> x = (*this) * w;
-@@ -173,7 +173,7 @@ Fp3_model<n,modulus> Fp3_model<n,modulus>::sqrt() const
- 
-     while (b != one)
-     {
--        size_t m = 0;
-+        uint64_t m = 0;
-         Fp3_model<n,modulus> b2m = b;
-         while (b2m != one)
-         {
-@@ -237,7 +237,7 @@ std::istream& operator>>(std::istream& in, std::vector<Fp3_model<n, modulus> > &
- {
-     v.clear();
- 
--    size_t s;
-+    uint64_t s;
-     in >> s;
- 
-     char b;
-diff --git a/src/snark/src/algebra/fields/fp6_3over2.hpp b/src/snark/src/algebra/fields/fp6_3over2.hpp
+diff --git a/src/snark/libsnark/algebra/fields/fp6_3over2.hpp b/src/snark/libsnark/algebra/fields/fp6_3over2.hpp
 index 335d61c..8a888f0 100644
---- a/src/snark/src/algebra/fields/fp6_3over2.hpp
-+++ b/src/snark/src/algebra/fields/fp6_3over2.hpp
+--- a/src/snark/libsnark/algebra/fields/fp6_3over2.hpp
++++ b/src/snark/libsnark/algebra/fields/fp6_3over2.hpp
 @@ -63,7 +63,7 @@ public:
      Fp6_3over2_model operator-() const;
      Fp6_3over2_model squared() const;
@@ -1629,10 +1438,10 @@ index 335d61c..8a888f0 100644
  
      friend std::ostream& operator<< <n, modulus>(std::ostream &out, const Fp6_3over2_model<n, modulus> &el);
      friend std::istream& operator>> <n, modulus>(std::istream &in, Fp6_3over2_model<n, modulus> &el);
-diff --git a/src/snark/src/algebra/fields/fp6_3over2.tcc b/src/snark/src/algebra/fields/fp6_3over2.tcc
+diff --git a/src/snark/libsnark/algebra/fields/fp6_3over2.tcc b/src/snark/libsnark/algebra/fields/fp6_3over2.tcc
 index f4fffde..de9b83d 100644
---- a/src/snark/src/algebra/fields/fp6_3over2.tcc
-+++ b/src/snark/src/algebra/fields/fp6_3over2.tcc
+--- a/src/snark/libsnark/algebra/fields/fp6_3over2.tcc
++++ b/src/snark/libsnark/algebra/fields/fp6_3over2.tcc
 @@ -149,7 +149,7 @@ Fp6_3over2_model<n,modulus> Fp6_3over2_model<n,modulus>::inverse() const
  }
  
@@ -1651,10 +1460,10 @@ index f4fffde..de9b83d 100644
      in >> s;
  
      char b;
-diff --git a/src/snark/src/algebra/fields/tests/test_bigint.cpp b/src/snark/src/algebra/fields/tests/test_bigint.cpp
+diff --git a/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp b/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp
 index d2da59e..6392f27 100644
---- a/src/snark/src/algebra/fields/tests/test_bigint.cpp
-+++ b/src/snark/src/algebra/fields/tests/test_bigint.cpp
+--- a/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp
++++ b/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp
 @@ -7,13 +7,11 @@
  
  #include "algebra/fields/bigint.hpp"
@@ -1796,10 +1605,10 @@ index d2da59e..6392f27 100644
 +    return 0;
 +}
 +
-diff --git a/src/snark/src/algebra/fields/tests/test_fields.cpp b/src/snark/src/algebra/fields/tests/test_fields.cpp
+diff --git a/src/snark/libsnark/algebra/fields/tests/test_fields.cpp b/src/snark/libsnark/algebra/fields/tests/test_fields.cpp
 index 969800d..a05f601 100644
---- a/src/snark/src/algebra/fields/tests/test_fields.cpp
-+++ b/src/snark/src/algebra/fields/tests/test_fields.cpp
+--- a/src/snark/libsnark/algebra/fields/tests/test_fields.cpp
++++ b/src/snark/libsnark/algebra/fields/tests/test_fields.cpp
 @@ -5,6 +5,9 @@
   * @copyright  MIT license (see LICENSE file)
   *****************************************************************************/
@@ -1990,10 +1799,10 @@ index 969800d..a05f601 100644
      alt_bn128_pp::init_public_params();
      test_field<alt_bn128_Fq6>();
      test_Frobenius<alt_bn128_Fq6>();
-diff --git a/src/snark/src/algebra/scalar_multiplication/kc_multiexp.tcc b/src/snark/src/algebra/scalar_multiplication/kc_multiexp.tcc
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/kc_multiexp.tcc b/src/snark/libsnark/algebra/scalar_multiplication/kc_multiexp.tcc
 index e9c08d4..6052033 100644
---- a/src/snark/src/algebra/scalar_multiplication/kc_multiexp.tcc
-+++ b/src/snark/src/algebra/scalar_multiplication/kc_multiexp.tcc
+--- a/src/snark/libsnark/algebra/scalar_multiplication/kc_multiexp.tcc
++++ b/src/snark/libsnark/algebra/scalar_multiplication/kc_multiexp.tcc
 @@ -8,6 +8,8 @@
  #ifndef KC_MULTIEXP_TCC_
  #define KC_MULTIEXP_TCC_
@@ -2012,10 +1821,10 @@ index e9c08d4..6052033 100644
  
          const FieldT scalar = *(scalar_start + scalar_position);
  
-diff --git a/src/snark/src/algebra/scalar_multiplication/multiexp.tcc b/src/snark/src/algebra/scalar_multiplication/multiexp.tcc
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc b/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc
 index a6b14c4..5dd19a6 100644
---- a/src/snark/src/algebra/scalar_multiplication/multiexp.tcc
-+++ b/src/snark/src/algebra/scalar_multiplication/multiexp.tcc
+--- a/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc
++++ b/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc
 @@ -22,6 +22,7 @@
  
  #include "common/profiling.hpp"
@@ -2128,10 +1937,10 @@ index a6b14c4..5dd19a6 100644
  #ifdef DEBUG
      if (!inhibit_profiling_info)
      {
-diff --git a/src/snark/src/algebra/scalar_multiplication/wnaf.hpp b/src/snark/src/algebra/scalar_multiplication/wnaf.hpp
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp
 index a7ecd59..d6c4326 100644
---- a/src/snark/src/algebra/scalar_multiplication/wnaf.hpp
-+++ b/src/snark/src/algebra/scalar_multiplication/wnaf.hpp
+--- a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp
++++ b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp
 @@ -18,7 +18,7 @@ namespace libsnark {
   * Find the wNAF representation of the given scalar relative to the given window size.
   */
@@ -2141,10 +1950,10 @@ index a7ecd59..d6c4326 100644
  
  /**
   * In additive notation, use wNAF exponentiation (with the given window size) to compute scalar * base.
-diff --git a/src/snark/src/algebra/scalar_multiplication/wnaf.tcc b/src/snark/src/algebra/scalar_multiplication/wnaf.tcc
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc
 index a5e47e8..4f2e407 100644
---- a/src/snark/src/algebra/scalar_multiplication/wnaf.tcc
-+++ b/src/snark/src/algebra/scalar_multiplication/wnaf.tcc
+--- a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc
++++ b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc
 @@ -17,15 +17,15 @@
  namespace libsnark {
  
@@ -2198,10 +2007,10 @@ index a5e47e8..4f2e407 100644
      {
          if (scalar_bits >= T::wnaf_window_table[i])
          {
-diff --git a/src/snark/src/common/data_structures/merkle_tree.tcc b/src/snark/src/common/data_structures/merkle_tree.tcc
+diff --git a/src/snark/libsnark/common/data_structures/merkle_tree.tcc b/src/snark/libsnark/common/data_structures/merkle_tree.tcc
 index 281700b..ce28b12 100644
---- a/src/snark/src/common/data_structures/merkle_tree.tcc
-+++ b/src/snark/src/common/data_structures/merkle_tree.tcc
+--- a/src/snark/libsnark/common/data_structures/merkle_tree.tcc
++++ b/src/snark/libsnark/common/data_structures/merkle_tree.tcc
 @@ -66,14 +66,14 @@ merkle_tree<HashT>::merkle_tree(const size_t depth,
      assert(log2(contents_as_vector.size()) <= depth);
      for (size_t address = 0; address < contents_as_vector.size(); ++address)
@@ -2272,10 +2081,10 @@ index 281700b..ce28b12 100644
      {
          auto it = values.find(i);
          printf("[%zu] -> ", i);
-diff --git a/src/snark/src/common/data_structures/sparse_vector.hpp b/src/snark/src/common/data_structures/sparse_vector.hpp
+diff --git a/src/snark/libsnark/common/data_structures/sparse_vector.hpp b/src/snark/libsnark/common/data_structures/sparse_vector.hpp
 index 8b134f4..20f1bc2 100644
---- a/src/snark/src/common/data_structures/sparse_vector.hpp
-+++ b/src/snark/src/common/data_structures/sparse_vector.hpp
+--- a/src/snark/libsnark/common/data_structures/sparse_vector.hpp
++++ b/src/snark/libsnark/common/data_structures/sparse_vector.hpp
 @@ -32,9 +32,9 @@ std::istream& operator>>(std::istream &in, sparse_vector<T> &v);
  template<typename T>
  struct sparse_vector {
@@ -2317,10 +2126,10 @@ index 8b134f4..20f1bc2 100644
  
      friend std::ostream& operator<< <T>(std::ostream &out, const sparse_vector<T> &v);
      friend std::istream& operator>> <T>(std::istream &in, sparse_vector<T> &v);
-diff --git a/src/snark/src/common/data_structures/sparse_vector.tcc b/src/snark/src/common/data_structures/sparse_vector.tcc
+diff --git a/src/snark/libsnark/common/data_structures/sparse_vector.tcc b/src/snark/libsnark/common/data_structures/sparse_vector.tcc
 index cfc5d75..906ed16 100644
---- a/src/snark/src/common/data_structures/sparse_vector.tcc
-+++ b/src/snark/src/common/data_structures/sparse_vector.tcc
+--- a/src/snark/libsnark/common/data_structures/sparse_vector.tcc
++++ b/src/snark/libsnark/common/data_structures/sparse_vector.tcc
 @@ -29,7 +29,7 @@ sparse_vector<T>::sparse_vector(std::vector<T> &&v) :
  }
  
@@ -2443,10 +2252,10 @@ index cfc5d75..906ed16 100644
      {
          T t;
          in >> t;
-diff --git a/src/snark/src/common/profiling.cpp b/src/snark/src/common/profiling.cpp
+diff --git a/src/snark/libsnark/common/profiling.cpp b/src/snark/libsnark/common/profiling.cpp
 index d227203..e4a2146 100644
---- a/src/snark/src/common/profiling.cpp
-+++ b/src/snark/src/common/profiling.cpp
+--- a/src/snark/libsnark/common/profiling.cpp
++++ b/src/snark/libsnark/common/profiling.cpp
 @@ -26,27 +26,44 @@
  #include <proc/readproc.h>
  #endif
@@ -2624,10 +2433,10 @@ index d227203..e4a2146 100644
      {
          cumulative_op_counts[std::make_pair(msg, p.first)] += *(p.second)-op_counts[std::make_pair(msg, p.first)];
      }
-diff --git a/src/snark/src/common/profiling.hpp b/src/snark/src/common/profiling.hpp
+diff --git a/src/snark/libsnark/common/profiling.hpp b/src/snark/libsnark/common/profiling.hpp
 index 9619117..4a49610 100644
---- a/src/snark/src/common/profiling.hpp
-+++ b/src/snark/src/common/profiling.hpp
+--- a/src/snark/libsnark/common/profiling.hpp
++++ b/src/snark/libsnark/common/profiling.hpp
 @@ -22,7 +22,7 @@
  namespace libsnark {
  
@@ -2655,10 +2464,10 @@ index 9619117..4a49610 100644
  void print_cumulative_op_counts(const bool only_fq=false);
  
  void enter_block(const std::string &msg, const bool indent=true);
-diff --git a/src/snark/src/common/serialization.tcc b/src/snark/src/common/serialization.tcc
+diff --git a/src/snark/libsnark/common/serialization.tcc b/src/snark/libsnark/common/serialization.tcc
 index 398f978..7983c9f 100644
---- a/src/snark/src/common/serialization.tcc
-+++ b/src/snark/src/common/serialization.tcc
+--- a/src/snark/libsnark/common/serialization.tcc
++++ b/src/snark/libsnark/common/serialization.tcc
 @@ -17,6 +17,7 @@
  #include <cassert>
  #include <sstream>
@@ -2676,10 +2485,10 @@ index 398f978..7983c9f 100644
      return tmp;
  }
  
-diff --git a/src/snark/src/common/utils.cpp b/src/snark/src/common/utils.cpp
+diff --git a/src/snark/libsnark/common/utils.cpp b/src/snark/libsnark/common/utils.cpp
 index dd114fd..5bcaf82 100644
---- a/src/snark/src/common/utils.cpp
-+++ b/src/snark/src/common/utils.cpp
+--- a/src/snark/libsnark/common/utils.cpp
++++ b/src/snark/libsnark/common/utils.cpp
 @@ -15,11 +15,11 @@
  
  namespace libsnark {
@@ -2765,10 +2574,10 @@ index dd114fd..5bcaf82 100644
      {
          bool b;
          in >> b;
-diff --git a/src/snark/src/common/utils.hpp b/src/snark/src/common/utils.hpp
+diff --git a/src/snark/libsnark/common/utils.hpp b/src/snark/libsnark/common/utils.hpp
 index d7d9e89..6879f80 100644
---- a/src/snark/src/common/utils.hpp
-+++ b/src/snark/src/common/utils.hpp
+--- a/src/snark/libsnark/common/utils.hpp
++++ b/src/snark/libsnark/common/utils.hpp
 @@ -21,13 +21,13 @@ namespace libsnark {
  typedef std::vector<bool> bit_vector;
  
@@ -2803,10 +2612,10 @@ index d7d9e89..6879f80 100644
  
  #define ARRAY_SIZE(arr) (sizeof(arr)/sizeof(arr[0]))
  
-diff --git a/src/snark/src/common/utils.tcc b/src/snark/src/common/utils.tcc
+diff --git a/src/snark/libsnark/common/utils.tcc b/src/snark/libsnark/common/utils.tcc
 index f97178f..4afdc8b 100644
---- a/src/snark/src/common/utils.tcc
-+++ b/src/snark/src/common/utils.tcc
+--- a/src/snark/libsnark/common/utils.tcc
++++ b/src/snark/libsnark/common/utils.tcc
 @@ -12,11 +12,19 @@
  
  namespace libsnark {
@@ -2827,10 +2636,10 @@ index f97178f..4afdc8b 100644
  
  } // libsnark
  
-diff --git a/src/snark/src/gadgetlib1/gadgets/basic_gadgets.tcc b/src/snark/src/gadgetlib1/gadgets/basic_gadgets.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc b/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc
 index 213b190..bcd2f2c 100644
---- a/src/snark/src/gadgetlib1/gadgets/basic_gadgets.tcc
-+++ b/src/snark/src/gadgetlib1/gadgets/basic_gadgets.tcc
+--- a/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc
 @@ -275,11 +275,11 @@ void test_disjunction_gadget(const size_t n)
      disjunction_gadget<FieldT> d(pb, inputs, output, "d");
      d.generate_r1cs_constraints();
@@ -2953,10 +2762,10 @@ index 213b190..bcd2f2c 100644
              assert(pb.val(success_flag) == FieldT::one());
              assert(pb.is_satisfied());
              pb.val(result) -= FieldT::one();
-diff --git a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
 index 8ab67be..148fe79 100644
---- a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
-+++ b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
 @@ -285,7 +285,7 @@ void majority_gadget<FieldT>::generate_r1cs_witness()
  {
      for (size_t i = 0; i < 32; ++i)
@@ -2966,10 +2775,10 @@ index 8ab67be..148fe79 100644
          this->pb.val(result_bits[i]) = FieldT(v / 2);
      }
  
-diff --git a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
 index c2f31e3..13bbc07 100644
---- a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
-+++ b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
 @@ -78,7 +78,7 @@ public:
      pb_linear_combination_array<FieldT> g;
      pb_linear_combination_array<FieldT> h;
@@ -2988,10 +2797,10 @@ index c2f31e3..13bbc07 100644
                                   const pb_linear_combination_array<FieldT> &new_a,
                                   const pb_linear_combination_array<FieldT> &new_e,
                                   const std::string &annotation_prefix);
-diff --git a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
 index e8f233a..b0e0063 100644
---- a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
-+++ b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
 @@ -16,7 +16,7 @@
  
  namespace libsnark {
@@ -3019,10 +2828,10 @@ index e8f233a..b0e0063 100644
                                                                     const pb_linear_combination_array<FieldT> &new_a,
                                                                     const pb_linear_combination_array<FieldT> &new_e,
                                                                     const std::string &annotation_prefix) :
-diff --git a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp
 index 0bfaf3a..471928f 100644
---- a/src/snark/src/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp
-+++ b/src/snark/src/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/tests/test_sha256_gadget.cpp
 @@ -10,8 +10,6 @@
  #include "common/profiling.hpp"
  #include "gadgetlib1/gadgets/hashes/sha256/sha256_gadget.hpp"
@@ -3045,10 +2854,10 @@ index 0bfaf3a..471928f 100644
  {
      start_profiling();
      default_ec_pp::init_public_params();
-diff --git a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
 index d773051..b3d805d 100644
---- a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
-+++ b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
 @@ -41,7 +41,7 @@ void merkle_authentication_path_variable<FieldT, HashT>::generate_r1cs_witness(c
  
      for (size_t i = 0; i < tree_depth; ++i)
@@ -3067,10 +2876,10 @@ index d773051..b3d805d 100644
          {
              result.emplace_back(left_digests[i].get_digest());
          }
-diff --git a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
 index 6002a58..2fde4f6 100644
---- a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
-+++ b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
 @@ -144,10 +144,10 @@ void test_merkle_tree_check_read_gadget()
      bit_vector address_bits;
  
@@ -3084,10 +2893,10 @@ index 6002a58..2fde4f6 100644
          address_bits.push_back(computed_is_right);
          bit_vector other(digest_len);
          std::generate(other.begin(), other.end(), [&]() { return std::rand() % 2; });
-diff --git a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp
 index 6ec0ca1..2d6840d 100644
---- a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp
-+++ b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.hpp
 @@ -19,6 +19,7 @@
  
  #include "common/data_structures/merkle_tree.hpp"
@@ -3096,10 +2905,10 @@ index 6ec0ca1..2d6840d 100644
  #include "gadgetlib1/gadgets/hashes/hash_io.hpp"
  #include "gadgetlib1/gadgets/hashes/digest_selector_gadget.hpp"
  #include "gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.hpp"
-diff --git a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
 index 1ac08ed..3e73904 100644
---- a/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
-+++ b/src/snark/src/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
 @@ -197,10 +197,10 @@ void test_merkle_tree_check_update_gadget()
      bit_vector address_bits;
  
@@ -3113,10 +2922,10 @@ index 1ac08ed..3e73904 100644
          address_bits.push_back(computed_is_right);
          bit_vector other(digest_len);
          std::generate(other.begin(), other.end(), [&]() { return std::rand() % 2; });
-diff --git a/src/snark/src/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp b/src/snark/src/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp
 index 27b52f9..8d52c57 100644
---- a/src/snark/src/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp
-+++ b/src/snark/src/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/tests/test_merkle_tree_gadgets.cpp
 @@ -5,36 +5,44 @@
   * @copyright  MIT license (see LICENSE file)
   *****************************************************************************/
@@ -3169,10 +2978,10 @@ index 27b52f9..8d52c57 100644
 +    mnt6_pp::init_public_params();
 +    test_all_merkle_tree_gadgets<mnt6_pp>();
  }
-diff --git a/src/snark/src/gadgetlib1/pb_variable.hpp b/src/snark/src/gadgetlib1/pb_variable.hpp
+diff --git a/src/snark/libsnark/gadgetlib1/pb_variable.hpp b/src/snark/libsnark/gadgetlib1/pb_variable.hpp
 index fdf64d0..a6c7174 100644
---- a/src/snark/src/gadgetlib1/pb_variable.hpp
-+++ b/src/snark/src/gadgetlib1/pb_variable.hpp
+--- a/src/snark/libsnark/gadgetlib1/pb_variable.hpp
++++ b/src/snark/libsnark/gadgetlib1/pb_variable.hpp
 @@ -59,7 +59,7 @@ public:
  
      void fill_with_field_elements(protoboard<FieldT> &pb, const std::vector<FieldT>& vals) const;
@@ -3191,10 +3000,10 @@ index fdf64d0..a6c7174 100644
      void fill_with_bits_of_field_element(protoboard<FieldT> &pb, const FieldT &r) const;
  
      std::vector<FieldT> get_vals(const protoboard<FieldT> &pb) const;
-diff --git a/src/snark/src/gadgetlib1/pb_variable.tcc b/src/snark/src/gadgetlib1/pb_variable.tcc
+diff --git a/src/snark/libsnark/gadgetlib1/pb_variable.tcc b/src/snark/libsnark/gadgetlib1/pb_variable.tcc
 index b36b3f8..77c9f13 100644
---- a/src/snark/src/gadgetlib1/pb_variable.tcc
-+++ b/src/snark/src/gadgetlib1/pb_variable.tcc
+--- a/src/snark/libsnark/gadgetlib1/pb_variable.tcc
++++ b/src/snark/libsnark/gadgetlib1/pb_variable.tcc
 @@ -65,7 +65,7 @@ void pb_variable_array<FieldT>::fill_with_bits_of_field_element(protoboard<Field
  }
  
@@ -3213,10 +3022,10 @@ index b36b3f8..77c9f13 100644
  {
      this->fill_with_bits_of_field_element(pb, FieldT(i));
  }
-diff --git a/src/snark/src/relations/arithmetic_programs/qap/tests/test_qap.cpp b/src/snark/src/relations/arithmetic_programs/qap/tests/test_qap.cpp
+diff --git a/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp b/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp
 index e20f589..0054eaf 100644
---- a/src/snark/src/relations/arithmetic_programs/qap/tests/test_qap.cpp
-+++ b/src/snark/src/relations/arithmetic_programs/qap/tests/test_qap.cpp
+--- a/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp
++++ b/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp
 @@ -10,15 +10,13 @@
  #include <cstring>
  #include <vector>
@@ -3302,10 +3111,10 @@ index e20f589..0054eaf 100644
  
      leave_block("Test QAP with field input");
  }
-diff --git a/src/snark/src/relations/variable.hpp b/src/snark/src/relations/variable.hpp
+diff --git a/src/snark/libsnark/relations/variable.hpp b/src/snark/libsnark/relations/variable.hpp
 index a9a1449..c63f57b 100644
---- a/src/snark/src/relations/variable.hpp
-+++ b/src/snark/src/relations/variable.hpp
+--- a/src/snark/libsnark/relations/variable.hpp
++++ b/src/snark/libsnark/relations/variable.hpp
 @@ -26,7 +26,7 @@ namespace libsnark {
   * Mnemonic typedefs.
   */
@@ -3315,10 +3124,10 @@ index a9a1449..c63f57b 100644
  
  /**
   * Forward declaration.
-diff --git a/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc b/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc
+diff --git a/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc b/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc
 index 00af6fe..9bc8758 100644
---- a/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc
-+++ b/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc
+--- a/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc
++++ b/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/examples/run_r1cs_ppzksnark.tcc
 @@ -83,7 +83,7 @@ bool run_r1cs_ppzksnark(const r1cs_example<Fr<ppT> > &example,
      }
  
@@ -3328,10 +3137,10 @@ index 00af6fe..9bc8758 100644
      printf("\n"); print_indent(); print_mem("after prover");
  
      if (test_serialization)
-diff --git a/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp b/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
-index 36f6c14..a068b09 100644
---- a/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
-+++ b/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
+diff --git a/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp b/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
+index 96bc365..615acd6 100644
+--- a/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
++++ b/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/r1cs_ppzksnark.hpp
 @@ -394,8 +394,7 @@ r1cs_ppzksnark_keypair<ppT> r1cs_ppzksnark_generator(
  template<typename ppT>
  r1cs_ppzksnark_proof<ppT> r1cs_ppzksnark_prover(const r1cs_ppzksnark_proving_key<ppT> &pk,
@@ -3340,12 +3149,12 @@ index 36f6c14..a068b09 100644
 -                                                const r1cs_ppzksnark_constraint_system<ppT> &constraint_system);
 +                                                const r1cs_ppzksnark_auxiliary_input<ppT> &auxiliary_input);
  
- /*
-  Below are four variants of verifier algorithm for the R1CS ppzkSNARK.
-diff --git a/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp b/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp
+ template<typename ppT>
+ r1cs_ppzksnark_proof<ppT> r1cs_ppzksnark_prover_streaming(std::ifstream &proving_key_file,
+diff --git a/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp b/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp
 index 6c6e518..6f8b575 100644
---- a/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp
-+++ b/src/snark/src/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp
+--- a/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp
++++ b/src/snark/libsnark/zk_proof_systems/ppzksnark/r1cs_ppzksnark/tests/test_r1cs_ppzksnark.cpp
 @@ -11,14 +11,12 @@
  #include <cassert>
  #include <cstdio>
