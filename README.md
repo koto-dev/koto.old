@@ -1,4 +1,4 @@
-Koto 1.0.14
+Koto 1.0.14　Mac-dev
 =============
 
 How to build koto for Mac OS
