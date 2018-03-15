@@ -214,6 +214,7 @@ UniValue generate(const UniValue& params, bool fHelp)
         }
 
         while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+            solutionTargetChecks.increment();
             // Yes, there is a chance every nonce could fail to satisfy the -regtest
             // target -- 1 in 2^(2^32). That ain't gonna happen.
             ++pblock->nNonce;
@@ -515,7 +516,7 @@ UniValue getblocktemplate(const UniValue& params, bool fHelp)
         throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid mode");
 
     if (vNodes.empty())
-        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Zcash is not connected!");
+        throw JSONRPCError(RPC_CLIENT_NOT_CONNECTED, "Koto is not connected!");
 
     if (IsInitialBlockDownload())
         throw JSONRPCError(RPC_CLIENT_IN_INITIAL_DOWNLOAD, "Koto is downloading blocks...");

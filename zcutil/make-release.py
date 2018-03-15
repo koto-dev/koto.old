@@ -15,7 +15,7 @@ from functools import wraps
 
 def main(args=sys.argv[1:]):
     """
-    Perform the final Zcash release process up to the git tag.
+    Perform the final Koto release process up to the git tag.
     """
     opts = parse_args(args)
     chdir_to_repo(opts.REPO)
@@ -26,6 +26,7 @@ def main(args=sys.argv[1:]):
         main_logged(
             opts.RELEASE_VERSION,
             opts.RELEASE_PREV,
+            opts.RELEASE_FROM,
             opts.RELEASE_HEIGHT,
             opts.HOTFIX,
         )
@@ -62,6 +63,11 @@ def parse_args(args):
         help='The previously released version.',
     )
     p.add_argument(
+        'RELEASE_FROM',
+        type=Version.parse_arg,
+        help='The previously released non-beta non-RC version. May be the same as RELEASE_PREV.',
+    )
+    p.add_argument(
         'RELEASE_HEIGHT',
         type=int,
         help='A block height approximately occuring on release day.',
@@ -70,8 +76,8 @@ def parse_args(args):
 
 
 # Top-level flow:
-def main_logged(release, releaseprev, releaseheight, hotfix):
-    verify_releaseprev_tag(releaseprev)
+def main_logged(release, releaseprev, releasefrom, releaseheight, hotfix):
+    verify_tags(releaseprev, releasefrom)
     verify_version(release, releaseprev, hotfix)
     initialize_git(release, hotfix)
     patch_version_in_files(release, releaseprev)
@@ -82,7 +88,7 @@ def main_logged(release, releaseprev, releaseheight, hotfix):
     gen_manpages()
     commit('Updated manpages for {}.'.format(release.novtext))
 
-    gen_release_notes(release)
+    gen_release_notes(release, releasefrom)
     update_debian_changelog(release)
     commit(
         'Updated release notes and changelog for {}.'.format(
@@ -101,8 +107,8 @@ def phase(message):
     return deco
 
 
-@phase('Checking RELEASE_PREV tag.')
-def verify_releaseprev_tag(releaseprev):
+@phase('Checking tags.')
+def verify_tags(releaseprev, releasefrom):
     candidates = []
 
     # Any tag beginning with a 'v' followed by [1-9] must be a version
@@ -129,6 +135,31 @@ def verify_releaseprev_tag(releaseprev):
                 releaseprev.vtext,
             ),
         )
+
+    candidates.reverse()
+    prev_tags = []
+    for candidate in candidates:
+        if releasefrom == candidate:
+            break
+        else:
+            prev_tags.append(candidate)
+    else:
+        raise SystemExit(
+            '{} does not appear in `git tag --list`'
+            .format(
+                releasefrom.vtext,
+            ),
+        )
+
+    for tag in prev_tags:
+        if not tag.betarc:
+            raise SystemExit(
+                '{} appears to be a more recent non-beta non-RC release than {}'
+                .format(
+                    tag.vtext,
+                    releasefrom.vtext,
+                ),
+            )
 
 
 @phase('Checking version.')
@@ -238,8 +269,18 @@ def gen_manpages():
 
 
 @phase('Generating release notes.')
-def gen_release_notes(release):
-    sh_log('python', './zcutil/release-notes.py', '--version', release.novtext)
+def gen_release_notes(release, releasefrom):
+    release_notes = [
+        'python',
+        './zcutil/release-notes.py',
+        '--version',
+        release.novtext,
+        '--prev',
+        releasefrom.vtext,
+    ]
+    if not release.betarc:
+        release_notes.append('--clear')
+    sh_log(*release_notes)
     sh_log(
         'git',
         'add',
@@ -251,7 +292,7 @@ def gen_release_notes(release):
 @phase('Updating debian changelog.')
 def update_debian_changelog(release):
     os.environ['DEBEMAIL'] = 'team@z.cash'
-    os.environ['DEBFULLNAME'] = 'Zcash Company'
+    os.environ['DEBFULLNAME'] = 'Koto Company'
     sh_log(
         'debchange',
         '--newversion', release.debversion,
@@ -278,10 +319,10 @@ def chdir_to_repo(repo):
 def patch_README(release, releaseprev):
     with PathPatcher('README.md') as (inf, outf):
         firstline = inf.readline()
-        assert firstline == 'Zcash {}\n'.format(releaseprev.novtext), \
+        assert firstline == 'Koto {}\n'.format(releaseprev.novtext), \
             repr(firstline)
 
-        outf.write('Zcash {}\n'.format(release.novtext))
+        outf.write('Koto {}\n'.format(release.novtext))
         outf.write(inf.read())
 
 
@@ -309,11 +350,11 @@ def patch_gitian_linux_yml(release, releaseprev):
         outf.write(inf.readline())
 
         secondline = inf.readline()
-        assert secondline == 'name: "zcash-{}"\n'.format(
+        assert secondline == 'name: "koto-{}"\n'.format(
             releaseprev.novtext
         ), repr(secondline)
 
-        outf.write('name: "zcash-{}"\n'.format(release.novtext))
+        outf.write('name: "koto-{}"\n'.format(release.novtext))
         outf.write(inf.read())
 
 
@@ -339,7 +380,7 @@ def _patch_build_defs(release, path, pattern):
 
 
 def initialize_logging():
-    logname = './zcash-make-release.log'
+    logname = './koto-make-release.log'
     fmtr = logging.Formatter(
         '%(asctime)s L%(lineno)-4d %(levelname)-5s | %(message)s',
         '%Y-%m-%d %H:%M:%S'
@@ -357,7 +398,7 @@ def initialize_logging():
     root.setLevel(logging.DEBUG)
     root.addHandler(hout)
     root.addHandler(hpath)
-    logging.info('zcash make-release.py debug log: %r', logname)
+    logging.info('koto make-release.py debug log: %r', logname)
 
 
 def sh_out(*args):

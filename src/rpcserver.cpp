@@ -245,11 +245,11 @@ UniValue stop(const UniValue& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Zcash server.");
+            "\nStop Koto server.");
     // Event loop will exit after current HTTP requests have been handled, so
     // this reply will get back to the client.
     StartShutdown();
-    return "Zcash server stopping";
+    return "Koto server stopping";
 }
 
 /**
@@ -395,6 +395,8 @@ static const CRPCCommand vRPCCommands[] =
     { "wallet",             "z_listaddresses",        &z_listaddresses,        true  },
     { "wallet",             "z_exportkey",            &z_exportkey,            true  },
     { "wallet",             "z_importkey",            &z_importkey,            true  },
+    { "wallet",             "z_exportviewingkey",     &z_exportviewingkey,     true  },
+    { "wallet",             "z_importviewingkey",     &z_importviewingkey,     true  },
     { "wallet",             "z_exportwallet",         &z_exportwallet,         true  },
     { "wallet",             "z_importwallet",         &z_importwallet,         true  },
 

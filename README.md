@@ -1,4 +1,4 @@
-Koto 1.0.13 mac-dev
+Koto 1.0.14　Mac-dev
 =============
 
 How to build koto for Mac OS
@@ -12,7 +12,7 @@ https://github.com/koto-dev/koto/wiki/How-to-build-for-Mac-Os-(Japanese)
 What is Koto?
 --------------
 
-[Koto](https://z.cash/) is fork of Zcash.
+[Koto](https://koto.cash/) is fork of Zcash.
 Based on Bitcoin's code, it intends to offer a far higher standard of privacy
 through a sophisticated zero-knowledge proving scheme that preserves
 confidentiality of transaction metadata. Technical details are available
@@ -46,9 +46,9 @@ https://github.com/zcash/zcash/wiki/1.0-User-Guide
 
 ### Need Help?
 
-* See the documentation at the [Koto Wiki](https://github.com/zcash/zcash/wiki)
+* See the documentation at the [Koto Wiki](https://github.com/koto-dev/wiki/wiki)
   for help and more information.
-* Ask for help on the [Koto](https://forum.z.cash/) forum.
+* Ask for help on the [Koto](https://discourse.koto.cash/) forum.
 
 Participation in the Koto project is subject to a
 [Code of Conduct](code_of_conduct.md).

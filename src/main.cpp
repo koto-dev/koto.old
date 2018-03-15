@@ -42,7 +42,7 @@
 using namespace std;
 
 #if defined(NDEBUG)
-# error "Zcash cannot be compiled without assertions."
+# error "Koto cannot be compiled without assertions."
 #endif
 
 /**
@@ -95,7 +95,7 @@ static void CheckBlockIndex();
 /** Constant stuff for coinbase transactions we create: */
 CScript COINBASE_FLAGS;
 
-const string strMessageMagic = "Zcash Signed Message:\n";
+const string strMessageMagic = "Koto Signed Message:\n";
 
 // Internal stuff
 namespace {
@@ -1974,7 +1974,7 @@ bool FindUndoPos(CValidationState &state, int nFile, CDiskBlockPos &pos, unsigne
 static CCheckQueue<CScriptCheck> scriptcheckqueue(128);
 
 void ThreadScriptCheck() {
-    RenameThread("zcash-scriptch");
+    RenameThread("koto-scriptch");
     scriptcheckqueue.Thread();
 }
 
@@ -2839,6 +2839,15 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
 {
     pindexNew->nTx = block.vtx.size();
     pindexNew->nChainTx = 0;
+    CAmount sproutValue = 0;
+    for (auto tx : block.vtx) {
+        for (auto js : tx.vjoinsplit) {
+            sproutValue += js.vpub_old;
+            sproutValue -= js.vpub_new;
+        }
+    }
+    pindexNew->nSproutValue = sproutValue;
+    pindexNew->nChainSproutValue = boost::none;
     pindexNew->nFile = pos.nFile;
     pindexNew->nDataPos = pos.nPos;
     pindexNew->nUndoPos = 0;
@@ -2856,6 +2865,15 @@ bool ReceivedBlockTransactions(const CBlock &block, CValidationState& state, CBl
             CBlockIndex *pindex = queue.front();
             queue.pop_front();
             pindex->nChainTx = (pindex->pprev ? pindex->pprev->nChainTx : 0) + pindex->nTx;
+            if (pindex->pprev) {
+                if (pindex->pprev->nChainSproutValue && pindex->nSproutValue) {
+                    pindex->nChainSproutValue = *pindex->pprev->nChainSproutValue + *pindex->nSproutValue;
+                } else {
+                    pindex->nChainSproutValue = boost::none;
+                }
+            } else {
+                pindex->nChainSproutValue = pindex->nSproutValue;
+            }
             {
                 LOCK(cs_nBlockSequenceId);
                 pindex->nSequenceId = nBlockSequenceId++;
@@ -3105,8 +3123,8 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
     }
 
     // Enforce BIP 34 rule that the coinbase starts with serialized block height.
-    // In Zcash this has been enforced since launch, except that the genesis
-    // block didn't include the height in the coinbase (see Zcash protocol spec
+    // In Koto this has been enforced since launch, except that the genesis
+    // block didn't include the height in the coinbase (see Koto protocol spec
     // section '6.8 Bitcoin Improvement Proposals').
     if (nHeight > 0)
     {
@@ -3499,12 +3517,19 @@ bool static LoadBlockIndexDB()
             if (pindex->pprev) {
                 if (pindex->pprev->nChainTx) {
                     pindex->nChainTx = pindex->pprev->nChainTx + pindex->nTx;
+                    if (pindex->pprev->nChainSproutValue && pindex->nSproutValue) {
+                        pindex->nChainSproutValue = *pindex->pprev->nChainSproutValue + *pindex->nSproutValue;
+                    } else {
+                        pindex->nChainSproutValue = boost::none;
+                    }
                 } else {
                     pindex->nChainTx = 0;
+                    pindex->nChainSproutValue = boost::none;
                     mapBlocksUnlinked.insert(std::make_pair(pindex->pprev, pindex));
                 }
             } else {
                 pindex->nChainTx = pindex->nTx;
+                pindex->nChainSproutValue = pindex->nSproutValue;
             }
         }
         if (pindex->IsValid(BLOCK_VALID_TRANSACTIONS) && (pindex->nChainTx || pindex->pprev == NULL))

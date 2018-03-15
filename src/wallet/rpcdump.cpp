@@ -80,10 +80,10 @@ UniValue importprivkey(const UniValue& params, bool fHelp)
     
     if (fHelp || params.size() < 1 || params.size() > 3)
         throw runtime_error(
-            "importprivkey \"zcashprivkey\" ( \"label\" rescan )\n"
+            "importprivkey \"kotoprivkey\" ( \"label\" rescan )\n"
             "\nAdds a private key (as returned by dumpprivkey) to your wallet.\n"
             "\nArguments:\n"
-            "1. \"zcashprivkey\"   (string, required) The private key (see dumpprivkey)\n"
+            "1. \"kotoprivkey\"   (string, required) The private key (see dumpprivkey)\n"
             "2. \"label\"            (string, optional, default=\"\") An optional label\n"
             "3. rescan               (boolean, optional, default=true) Rescan the wallet for transactions\n"
             "\nNote: This call can take minutes to complete if rescan is true.\n"
@@ -182,7 +182,7 @@ UniValue importaddress(const UniValue& params, bool fHelp)
         std::vector<unsigned char> data(ParseHex(params[0].get_str()));
         script = CScript(data.begin(), data.end());
     } else {
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Zcash address or script");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Koto address or script");
     }
 
     string strLabel = "";
@@ -298,7 +298,7 @@ UniValue importwallet_impl(const UniValue& params, bool fHelp, bool fImportZKeys
         if (vstr.size() < 2)
             continue;
 
-        // Let's see if the address is a valid Zcash spending key
+        // Let's see if the address is a valid Koto spending key
         if (fImportZKeys) {
             try {
                 CZCSpendingKey spendingkey(vstr[0]);
@@ -321,7 +321,7 @@ UniValue importwallet_impl(const UniValue& params, bool fHelp, bool fImportZKeys
             }
             catch (const std::runtime_error &e) {
                 LogPrint("zrpc","Importing detected an error: %s\n", e.what());
-                // Not a valid spending key, so carry on and see if it's a Zcash style address.
+                // Not a valid spending key, so carry on and see if it's a Koto style address.
             }
         }
 
@@ -388,11 +388,11 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
     
     if (fHelp || params.size() != 1)
         throw runtime_error(
-            "dumpprivkey \"zcashaddress\"\n"
-            "\nReveals the private key corresponding to 'zcashaddress'.\n"
+            "dumpprivkey \"kotoaddress\"\n"
+            "\nReveals the private key corresponding to 'kotoaddress'.\n"
             "Then the importprivkey can be used with this output\n"
             "\nArguments:\n"
-            "1. \"zcashaddress\"   (string, required) The zcash address for the private key\n"
+            "1. \"kotoaddress\"   (string, required) The koto address for the private key\n"
             "\nResult:\n"
             "\"key\"                (string) The private key\n"
             "\nExamples:\n"
@@ -408,7 +408,7 @@ UniValue dumpprivkey(const UniValue& params, bool fHelp)
     string strAddress = params[0].get_str();
     CBitcoinAddress address;
     if (!address.SetString(strAddress))
-        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Zcash address");
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Koto address");
     CKeyID keyID;
     if (!address.GetKeyID(keyID))
         throw JSONRPCError(RPC_TYPE_ERROR, "Address does not refer to a key");
@@ -507,7 +507,7 @@ UniValue dumpwallet_impl(const UniValue& params, bool fHelp, bool fDumpZKeys)
     std::sort(vKeyBirth.begin(), vKeyBirth.end());
 
     // produce output
-    file << strprintf("# Wallet dump created by Zcash %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
+    file << strprintf("# Wallet dump created by Koto %s (%s)\n", CLIENT_BUILD, CLIENT_DATE);
     file << strprintf("# * Created on %s\n", EncodeDumpTime(GetTime()));
     file << strprintf("# * Best block at time of backup was %i (%s),\n", chainActive.Height(), chainActive.Tip()->GetBlockHash().ToString());
     file << strprintf("#   mined on %s\n", EncodeDumpTime(chainActive.Tip()->GetBlockTime()));
@@ -648,6 +648,94 @@ UniValue z_importkey(const UniValue& params, bool fHelp)
     return NullUniValue;
 }
 
+UniValue z_importviewingkey(const UniValue& params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return NullUniValue;
+
+    if (fHelp || params.size() < 1 || params.size() > 2)
+        throw runtime_error(
+            "z_importviewingkey \"vkey\" ( rescan startHeight )\n"
+            "\nAdds a viewing key (as returned by z_exportviewingkey) to your wallet.\n"
+            "\nArguments:\n"
+            "1. \"vkey\"             (string, required) The viewing key (see z_exportviewingkey)\n"
+            "2. rescan             (string, optional, default=\"whenkeyisnew\") Rescan the wallet for transactions - can be \"yes\", \"no\" or \"whenkeyisnew\"\n"
+            "3. startHeight        (numeric, optional, default=0) Block height to start rescan from\n"
+            "\nNote: This call can take minutes to complete if rescan is true.\n"
+            "\nExamples:\n"
+            "\nImport a viewing key\n"
+            + HelpExampleCli("z_importviewingkey", "\"vkey\"") +
+            "\nImport the viewing key without rescan\n"
+            + HelpExampleCli("z_importviewingkey", "\"vkey\", no") +
+            "\nImport the viewing key with partial rescan\n"
+            + HelpExampleCli("z_importviewingkey", "\"vkey\" whenkeyisnew 30000") +
+            "\nRe-import the viewing key with longer partial rescan\n"
+            + HelpExampleCli("z_importviewingkey", "\"vkey\" yes 20000") +
+            "\nAs a JSON-RPC call\n"
+            + HelpExampleRpc("z_importviewingkey", "\"vkey\", \"no\"")
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    EnsureWalletIsUnlocked();
+
+    // Whether to perform rescan after import
+    bool fRescan = true;
+    bool fIgnoreExistingKey = true;
+    if (params.size() > 1) {
+        auto rescan = params[1].get_str();
+        if (rescan.compare("whenkeyisnew") != 0) {
+            fIgnoreExistingKey = false;
+            if (rescan.compare("no") == 0) {
+                fRescan = false;
+            } else if (rescan.compare("yes") != 0) {
+                throw JSONRPCError(
+                    RPC_INVALID_PARAMETER,
+                    "rescan must be \"yes\", \"no\" or \"whenkeyisnew\"");
+            }
+        }
+    }
+
+    // Height to rescan from
+    int nRescanHeight = 0;
+    if (params.size() > 2) {
+        nRescanHeight = params[2].get_int();
+    }
+    if (nRescanHeight < 0 || nRescanHeight > chainActive.Height()) {
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Block height out of range");
+    }
+
+    string strVKey = params[0].get_str();
+    CZCViewingKey viewingkey(strVKey);
+    auto vkey = viewingkey.Get();
+    auto addr = vkey.address();
+
+    {
+        if (pwalletMain->HaveSpendingKey(addr)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "The wallet already contains the private key for this viewing key");
+        }
+
+        // Don't throw error in case a viewing key is already there
+        if (pwalletMain->HaveViewingKey(addr)) {
+            if (fIgnoreExistingKey) {
+                return NullUniValue;
+            }
+        } else {
+            pwalletMain->MarkDirty();
+
+            if (!pwalletMain->AddViewingKey(vkey)) {
+                throw JSONRPCError(RPC_WALLET_ERROR, "Error adding viewing key to wallet");
+            }
+        }
+
+        // We want to scan for transactions and notes
+        if (fRescan) {
+            pwalletMain->ScanForWalletTransactions(chainActive[nRescanHeight], true);
+        }
+    }
+
+    return NullUniValue;
+}
 
 UniValue z_exportkey(const UniValue& params, bool fHelp)
 {
@@ -686,3 +774,43 @@ UniValue z_exportkey(const UniValue& params, bool fHelp)
     return spendingkey.ToString();
 }
 
+UniValue z_exportviewingkey(const UniValue& params, bool fHelp)
+{
+    if (!EnsureWalletIsAvailable(fHelp))
+        return NullUniValue;
+
+    if (fHelp || params.size() != 1)
+        throw runtime_error(
+            "z_exportviewingkey \"zaddr\"\n"
+            "\nReveals the viewing key corresponding to 'zaddr'.\n"
+            "Then the z_importviewingkey can be used with this output\n"
+            "\nArguments:\n"
+            "1. \"zaddr\"   (string, required) The zaddr for the viewing key\n"
+            "\nResult:\n"
+            "\"vkey\"                  (string) The viewing key\n"
+            "\nExamples:\n"
+            + HelpExampleCli("z_exportviewingkey", "\"myaddress\"")
+            + HelpExampleRpc("z_exportviewingkey", "\"myaddress\"")
+        );
+
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+
+    EnsureWalletIsUnlocked();
+
+    string strAddress = params[0].get_str();
+
+    CZCPaymentAddress address(strAddress);
+    auto addr = address.Get();
+
+    libzcash::ViewingKey vk;
+    if (!pwalletMain->GetViewingKey(addr, vk)) {
+        libzcash::SpendingKey k;
+        if (!pwalletMain->GetSpendingKey(addr, k)) {
+            throw JSONRPCError(RPC_WALLET_ERROR, "Wallet does not hold private key or viewing key for this zaddr");
+        }
+        vk = k.viewing_key();
+    }
+
+    CZCViewingKey viewingkey(vk);
+    return viewingkey.ToString();
+}

@@ -117,7 +117,7 @@ bool AppInit(int argc, char* argv[])
                    "- .deb package: %s\n")).c_str(),
                 GetConfigFile().string().c_str(),
                 "contrib/debian/examples/koto.conf",
-                "/usr/share/doc/zcash/examples/koto.conf");
+                "/usr/share/doc/koto/examples/koto.conf");
             return false;
         } catch (const std::exception& e) {
             fprintf(stderr,"Error reading configuration file: %s\n", e.what());
@@ -132,7 +132,7 @@ bool AppInit(int argc, char* argv[])
         // Command-line RPC
         bool fCommandLine = false;
         for (int i = 1; i < argc; i++)
-            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "zcash:"))
+            if (!IsSwitchChar(argv[i][0]) && !boost::algorithm::istarts_with(argv[i], "koto:"))
                 fCommandLine = true;
 
         if (fCommandLine)
