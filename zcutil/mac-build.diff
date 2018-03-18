@@ -1,8 +1,8 @@
 diff --git a/configure.ac b/configure.ac
-index aedf8f4d3..11fe4fb0b 100644
+index 484e8fa..0c6f3d4 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -188,9 +188,10 @@ fi
+@@ -200,9 +200,10 @@ fi
  ERROR_CXXFLAGS=
  if test "x$enable_werror" = "xyes"; then
    if test "x$CXXFLAG_WERROR" = "x"; then
@@ -15,7 +15,7 @@ index aedf8f4d3..11fe4fb0b 100644
  fi
  
  if test "x$CXXFLAGS_overridden" = "xno"; then
-@@ -454,14 +455,22 @@ if test x$use_hardening != xno; then
+@@ -489,14 +490,22 @@ if test x$use_hardening != xno; then
      HARDENED_CPPFLAGS="$HARDENED_CPPFLAGS -D_FORTIFY_SOURCE=2"
    ],[AC_MSG_ERROR(Cannot enable -D_FORTIFY_SOURCE=2)])
  
@@ -43,7 +43,7 @@ index aedf8f4d3..11fe4fb0b 100644
    else
      # These are only available on Windows.
      AX_CHECK_LINK_FLAG([[-Wl,--dynamicbase]], [HARDENED_LDFLAGS="$HARDENED_LDFLAGS -Wl,--dynamicbase"],[AC_MSG_ERROR(Cannot enable --dynamicbase)])
-@@ -720,6 +729,9 @@ fi
+@@ -755,6 +764,9 @@ fi
  AX_CHECK_COMPILE_FLAG([-fwrapv],[CXXFLAGS="$CXXFLAGS -fwrapv"])
  AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],[CXXFLAGS="$CXXFLAGS -fno-strict-aliasing"])
  AX_CHECK_COMPILE_FLAG([-Wno-builtin-declaration-mismatch],[CXXFLAGS="$CXXFLAGS -Wno-builtin-declaration-mismatch"],,[[$CXXFLAG_WERROR]])
@@ -51,22 +51,22 @@ index aedf8f4d3..11fe4fb0b 100644
 +  AX_CHECK_COMPILE_FLAG([-Wno-undefined-var-template],[CXXFLAGS="$CXXFLAGS -Wno-undefined-var-template"],,[[$CXXFLAG_WERROR]])
 +fi
  
- LIBZCASH_LIBS="-lgmp -lgmpxx -lboost_system-mt -lcrypto -lsodium $RUST_LIBS"
+ LIBZCASH_LIBS="-lgmp -lgmpxx -lboost_system -lcrypto -lsodium $RUST_LIBS"
  
 diff --git a/src/Makefile.am b/src/Makefile.am
-index ffde9b8e6..22a8ec98e 100644
+index 65c5a52..9e9190a 100644
 --- a/src/Makefile.am
 +++ b/src/Makefile.am
 @@ -529,7 +529,9 @@ libzcash_a_SOURCES = \
    zcash/circuit/prfs.tcc \
    zcash/circuit/utils.tcc
  
--libzcash_a_CPPFLAGS = -DMULTICORE -fopenmp -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) -pipe -O1 -g -Wstack-protector -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
+-libzcash_a_CPPFLAGS = -DMULTICORE -fopenmp -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) $(HARDENED_CXXFLAGS) $(HARDENED_LDFLAGS) -pipe $(SAN_LDFLAGS) -O1 -g -Wstack-protector $(SAN_CXXFLAGS) -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
 +libzcash_a_CPPFLAGS = -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) -pipe -O1 -g -Wstack-protector -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
 +
-+libzcash_a_CPPFLAGS := $(libzcash_a_CPPFLAGS) -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) -pipe -O1 -g -Wstack-protector -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
++libzcash_a_CPPFLAGS := $(libzcash_a_CPPFLAGS) -fPIC -DBINARY_OUTPUT -DCURVE_ALT_BN128 -DBOOST_SPIRIT_THREADSAFE -DHAVE_BUILD_INFO -D__STDC_FORMAT_MACROS $(HARDENED_CPPFLAGS) $(HARDENED_CXXFLAGS) $(HARDENED_LDFLAGS) -pipe -O1 -g -Wstack-protector -fstack-protector-all -fPIE -fvisibility=hidden -DSTATIC $(BITCOIN_INCLUDES)
  
- libzcash_a_CXXFLAGS = $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
+ libzcash_a_CXXFLAGS = $(SAN_CXXFLAGS) $(HARDENED_CXXFLAGS) -fwrapv -fno-strict-aliasing
  
 @@ -560,10 +562,10 @@ if GLIBC_BACK_COMPAT
    libzcashconsensus_la_SOURCES += compat/glibc_compat.cpp
@@ -83,7 +83,7 @@ index ffde9b8e6..22a8ec98e 100644
  endif
  #
 diff --git a/src/Makefile.gtest.include b/src/Makefile.gtest.include
-index eaad8a79f..9bf298105 100644
+index eaad8a7..9bf2981 100644
 --- a/src/Makefile.gtest.include
 +++ b/src/Makefile.gtest.include
 @@ -46,7 +46,11 @@ zcash_gtest_SOURCES += \
@@ -100,7 +100,7 @@ index eaad8a79f..9bf298105 100644
  
  zcash_gtest_LDADD = -lgtest -lgmock $(LIBBITCOIN_SERVER) $(LIBBITCOIN_CLI) $(LIBBITCOIN_COMMON) $(LIBBITCOIN_UTIL) $(LIBBITCOIN_CRYPTO) $(LIBUNIVALUE) $(LIBLEVELDB) $(LIBMEMENV) \
 diff --git a/src/Makefile.test.include b/src/Makefile.test.include
-index 582ecb577..6db88b5c0 100644
+index 582ecb5..6db88b5 100644
 --- a/src/Makefile.test.include
 +++ b/src/Makefile.test.include
 @@ -99,7 +99,12 @@ BITCOIN_TESTS += \
@@ -118,7 +118,7 @@ index 582ecb577..6db88b5c0 100644
    $(BOOST_LIBS) $(BOOST_UNIT_TEST_FRAMEWORK_LIB) $(LIBSECP256K1) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
  test_test_bitcoin_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 diff --git a/src/crypto/equihash.cpp b/src/crypto/equihash.cpp
-index ecc50e536..995147c09 100644
+index ecc50e5..995147c 100644
 --- a/src/crypto/equihash.cpp
 +++ b/src/crypto/equihash.cpp
 @@ -18,7 +18,12 @@
@@ -135,7 +135,7 @@ index ecc50e536..995147c09 100644
  #include <algorithm>
  #include <iostream>
 diff --git a/src/crypto/equihash.h b/src/crypto/equihash.h
-index 6691844ba..8236f4c69 100644
+index 6691844..8236f4c 100644
 --- a/src/crypto/equihash.h
 +++ b/src/crypto/equihash.h
 @@ -10,7 +10,7 @@
@@ -185,21 +185,8 @@ index 6691844ba..8236f4c69 100644
 -#endif // BITCOIN_EQUIHASH_H
 +#endif // BITCOIN_EQUIHASH_H
 \ No newline at end of file
-diff --git a/src/gtest/test_deprecation.cpp b/src/gtest/test_deprecation.cpp
-index 72d98cf91..c44b810f1 100644
---- a/src/gtest/test_deprecation.cpp
-+++ b/src/gtest/test_deprecation.cpp
-@@ -24,7 +24,7 @@ static bool ThreadSafeMessageBox(MockUIInterface *mock,
-                                  const std::string& caption,
-                                  unsigned int style)
- {
--    mock->ThreadSafeMessageBox(message, caption, style);
-+    return mock->ThreadSafeMessageBox(message, caption, style);
- }
- 
- class DeprecationTest : public ::testing::Test {
 diff --git a/src/paymentdisclosure.h b/src/paymentdisclosure.h
-index d973c08ce..ee4a7c47c 100644
+index d973c08..ee4a7c4 100644
 --- a/src/paymentdisclosure.h
 +++ b/src/paymentdisclosure.h
 @@ -73,7 +73,7 @@ struct PaymentDisclosurePayload {
@@ -212,7 +199,7 @@ index d973c08ce..ee4a7c47c 100644
      libzcash::PaymentAddress zaddr; // zcash/Address.hpp
      std::string message;     // parameter to RPC call
 diff --git a/src/serialize.h b/src/serialize.h
-index f776d6d99..d6daf4dd4 100644
+index f776d6d..d6daf4d 100644
 --- a/src/serialize.h
 +++ b/src/serialize.h
 @@ -649,7 +649,11 @@ void Serialize_impl(Stream& os, const std::vector<T, A>& v, int nType, int nVers
@@ -228,7 +215,7 @@ index f776d6d99..d6daf4dd4 100644
  
  template<typename Stream, typename T, typename A>
 diff --git a/src/snark/Makefile b/src/snark/Makefile
-index b865f992f..f7f76a40a 100644
+index b865f99..f7f76a4 100644
 --- a/src/snark/Makefile
 +++ b/src/snark/Makefile
 @@ -141,7 +141,7 @@ ifeq ($(PROFILE_OP_COUNTS),1)
@@ -241,7 +228,7 @@ index b865f992f..f7f76a40a 100644
  	CXXFLAGS += -fPIC
  endif
 diff --git a/src/snark/libsnark/common/profiling.cpp b/src/snark/libsnark/common/profiling.cpp
-index d227203a0..4c06cd34f 100644
+index ae8f85a..86132d0 100644
 --- a/src/snark/libsnark/common/profiling.cpp
 +++ b/src/snark/libsnark/common/profiling.cpp
 @@ -26,6 +26,11 @@
@@ -277,43 +264,8 @@ index d227203a0..4c06cd34f 100644
      return ts.tv_sec * 1000000000ll + ts.tv_nsec;
  }
  
-diff --git a/src/test/rpc_wallet_tests.cpp b/src/test/rpc_wallet_tests.cpp
-index 18b687dbf..04fccfe81 100644
---- a/src/test/rpc_wallet_tests.cpp
-+++ b/src/test/rpc_wallet_tests.cpp
-@@ -47,6 +47,13 @@ bool find_error(const UniValue& objError, const std::string& expected) {
-     return find_value(objError, "message").get_str().find(expected) != string::npos;
- }
- 
-+static UniValue ValueFromString(const std::string &str)
-+{
-+    UniValue value;
-+    BOOST_CHECK(value.setNumStr(str));
-+    return value;
-+}
-+
- BOOST_FIXTURE_TEST_SUITE(rpc_wallet_tests, TestingSetup)
- 
- BOOST_AUTO_TEST_CASE(rpc_addmultisig)
-@@ -1078,14 +1085,14 @@ BOOST_AUTO_TEST_CASE(rpc_z_sendmany_internals)
-         CTransaction tx = proxy.getTx();
-         BOOST_CHECK(tx.vout.size() == 0);
- 
--        CAmount amount = 123.456;
-+        CAmount amount = AmountFromValue(ValueFromString("123.456"));
-         proxy.add_taddr_change_output_to_tx(amount);
-         tx = proxy.getTx();
-         BOOST_CHECK(tx.vout.size() == 1);
-         CTxOut out = tx.vout[0];
-         BOOST_CHECK_EQUAL(out.nValue, amount);
- 
--        amount = 1.111;
-+        amount = AmountFromValue(ValueFromString("1.111"));
-         proxy.add_taddr_change_output_to_tx(amount);
-         tx = proxy.getTx();
-         BOOST_CHECK(tx.vout.size() == 2);
 diff --git a/src/univalue/include/univalue.h b/src/univalue/include/univalue.h
-index dfc84f921..a6053356b 100644
+index dfc84f9..a605335 100644
 --- a/src/univalue/include/univalue.h
 +++ b/src/univalue/include/univalue.h
 @@ -25,6 +25,9 @@ public:
@@ -360,7 +312,7 @@ index dfc84f921..a6053356b 100644
  {
      std::string key(cKey);
 diff --git a/src/univalue/lib/univalue.cpp b/src/univalue/lib/univalue.cpp
-index 47ca7aca7..b6c205f16 100644
+index 14f4c3c..cfbd119 100644
 --- a/src/univalue/lib/univalue.cpp
 +++ b/src/univalue/lib/univalue.cpp
 @@ -119,6 +119,15 @@ bool UniValue::setNumStr(const string& val_)
@@ -380,7 +332,7 @@ index 47ca7aca7..b6c205f16 100644
  {
      ostringstream oss;
 diff --git a/src/wallet/wallet.h b/src/wallet/wallet.h
-index a954b5f31..838b35d26 100644
+index 82fb1dc..cfa0cbf 100644
 --- a/src/wallet/wallet.h
 +++ b/src/wallet/wallet.h
 @@ -159,7 +159,7 @@ public:
@@ -393,13 +345,13 @@ index a954b5f31..838b35d26 100644
      uint8_t n;
  
 diff --git a/zcutil/build.sh b/zcutil/build.sh
-index 810872a40..1a89067bc 100755
+index 9297ace..7d913be 100755
 --- a/zcutil/build.sh
 +++ b/zcutil/build.sh
-@@ -132,5 +132,5 @@ ld -v
+@@ -137,5 +137,5 @@ ld -v
  
  HOST="$HOST" BUILD="$BUILD" NO_RUST="$RUST_ARG" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
  ./autogen.sh
--CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$RUST_ARG" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" --enable-werror CXXFLAGS='-g'
-+CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$RUST_ARG" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" CXXFLAGS='-g'
+-CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$RUST_ARG" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" $CONFIGURE_FLAGS --enable-werror CXXFLAGS='-g'
++CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$RUST_ARG" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" $CONFIGURE_FLAGS CXXFLAGS='-g'
  "$MAKE" "$@" V=1
