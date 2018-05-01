@@ -98,6 +98,7 @@ AsyncRPCOperation_mergetoaddress::AsyncRPCOperation_mergetoaddress(
 
     // Lock UTXOs
     lock_utxos();
+    lock_notes();
 
     // Enable payment disclosure if requested
     paymentDisclosureMode = fExperimentalMode && GetBoolArg("-paymentdisclosure", false);
@@ -111,6 +112,7 @@ void AsyncRPCOperation_mergetoaddress::main()
 {
     if (isCancelled()) {
         unlock_utxos(); // clean up
+        unlock_notes();
         return;
     }
 
@@ -173,6 +175,7 @@ void AsyncRPCOperation_mergetoaddress::main()
     LogPrintf("%s", s);
 
     unlock_utxos(); // clean up
+    unlock_notes(); // clean up
 
     // !!! Payment disclosure START
     if (success && paymentDisclosureMode && paymentDisclosureData_.size() > 0) {
@@ -204,6 +207,12 @@ bool AsyncRPCOperation_mergetoaddress::main_impl()
 
     // Check mempooltxinputlimit to avoid creating a transaction which the local mempool rejects
     size_t limit = (size_t)GetArg("-mempooltxinputlimit", 0);
+    {
+        LOCK(cs_main);
+        if (NetworkUpgradeActive(chainActive.Height() + 1, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {
+            limit = 0;
+        }
+    }
     if (limit > 0 && numInputs > limit) {
         throw JSONRPCError(RPC_WALLET_ERROR,
                            strprintf("Number of transparent inputs %d is greater than mempooltxinputlimit of %d",
@@ -825,10 +834,10 @@ UniValue AsyncRPCOperation_mergetoaddress::perform_joinsplit(
     UniValue arrInputMap(UniValue::VARR);
     UniValue arrOutputMap(UniValue::VARR);
     for (size_t i = 0; i < ZC_NUM_JS_INPUTS; i++) {
-        arrInputMap.push_back(inputMap[i]);
+        arrInputMap.push_back(static_cast<uint64_t>(inputMap[i]));
     }
     for (size_t i = 0; i < ZC_NUM_JS_OUTPUTS; i++) {
-        arrOutputMap.push_back(outputMap[i]);
+        arrOutputMap.push_back(static_cast<uint64_t>(outputMap[i]));
     }
 
 
@@ -919,5 +928,26 @@ void AsyncRPCOperation_mergetoaddress::unlock_utxos() {
     LOCK2(cs_main, pwalletMain->cs_wallet);
     for (auto utxo : utxoInputs_) {
         pwalletMain->UnlockCoin(std::get<0>(utxo));
+    }
+}
+
+
+/**
+ * Lock input notes
+ */
+ void AsyncRPCOperation_mergetoaddress::lock_notes() {
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+    for (auto note : noteInputs_) {
+        pwalletMain->LockNote(std::get<0>(note));
+    }
+}
+
+/**
+ * Unlock input notes
+ */
+void AsyncRPCOperation_mergetoaddress::unlock_notes() {
+    LOCK2(cs_main, pwalletMain->cs_wallet);
+    for (auto note : noteInputs_) {
+        pwalletMain->UnlockNote(std::get<0>(note));
     }
 }

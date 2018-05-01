@@ -1,4 +1,4 @@
-Koto 1.0.15
+Koto 1.1.0
 =============
 
 What is Koto?

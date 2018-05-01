@@ -11,9 +11,7 @@
 #include "uint256.h"
 #include "util.h"
 
-#ifdef ENABLE_RUST
 #include "librustzcash.h"
-#endif // ENABLE_RUST
 
 unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHeader *pblock, const Consensus::Params& params)
 {

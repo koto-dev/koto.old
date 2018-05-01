@@ -897,7 +897,9 @@ bool ContextualCheckTransaction(const CTransaction& tx, CValidationState &state,
     
         // Check that all transactions are unexpired
         if (IsExpiredTx(tx, nHeight)) {
-            return state.DoS(dosLevel, error("ContextualCheckTransaction(): transaction is expired"), REJECT_INVALID, "tx-overwinter-expired");
+            // Don't increase banscore if the transaction only just expired
+            int expiredDosLevel = IsExpiredTx(tx, nHeight - 1) ? dosLevel : 0;
+            return state.DoS(expiredDosLevel, error("ContextualCheckTransaction(): transaction is expired"), REJECT_INVALID, "tx-overwinter-expired");
         }
     }
 
@@ -1169,6 +1171,9 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
     // Node operator can choose to reject tx by number of transparent inputs
     static_assert(std::numeric_limits<size_t>::max() >= std::numeric_limits<int64_t>::max(), "size_t too small");
     size_t limit = (size_t) GetArg("-mempooltxinputlimit", 0);
+    if (NetworkUpgradeActive(nextBlockHeight, Params().GetConsensus(), Consensus::UPGRADE_OVERWINTER)) {
+        limit = 0;
+    }
     if (limit > 0) {
         size_t n = tx.vin.size();
         if (n > limit) {
@@ -1357,10 +1362,13 @@ bool AcceptToMemoryPool(CTxMemPool& pool, CValidationState &state, const CTransa
             dFreeCount += nSize;
         }
 
-        if (fRejectAbsurdFee && nFees > ::minRelayTxFee.GetFee(nSize) * 10000)
-            return error("AcceptToMemoryPool: absurdly high fees %s, %d > %d",
-                         hash.ToString(),
-                         nFees, ::minRelayTxFee.GetFee(nSize) * 10000);
+        if (fRejectAbsurdFee && nFees > ::minRelayTxFee.GetFee(nSize) * 10000) {
+            string errmsg = strprintf("absurdly high fees %s, %d > %d",
+                                      hash.ToString(),
+                                      nFees, ::minRelayTxFee.GetFee(nSize) * 10000);
+            LogPrint("mempool", errmsg.c_str());
+            return state.Error("AcceptToMemoryPool: " + errmsg);
+        }
 
         // Check against previous transactions
         // This is done last to help prevent CPU exhaustion denial-of-service attacks.
@@ -4012,9 +4020,10 @@ bool RewindBlockIndex(const CChainParams& params)
             return false;
     }
 
-    // Reduce validity flag and have-data flags.
+    // Collect blocks to be removed (blocks in mapBlockIndex must be at least BLOCK_VALID_TREE).
     // We do this after actual disconnecting, otherwise we'll end up writing the lack of data
     // to disk before writing the chainstate, resulting in a failure to continue if interrupted.
+    std::vector<const CBlockIndex*> vBlocks;
     for (BlockMap::iterator it = mapBlockIndex.begin(); it != mapBlockIndex.end(); it++) {
         CBlockIndex* pindexIter = it->second;
 
@@ -4024,27 +4033,12 @@ bool RewindBlockIndex(const CChainParams& params)
         // rewind all the way.  Blocks remaining on chainActive at this point
         // must not have their validity reduced.
         if (!sufficientlyValidated(pindexIter) && !chainActive.Contains(pindexIter)) {
-            // Reduce validity
-            pindexIter->nStatus =
-                std::min<unsigned int>(pindexIter->nStatus & BLOCK_VALID_MASK, BLOCK_VALID_TREE) |
-                (pindexIter->nStatus & ~BLOCK_VALID_MASK);
-            // Remove have-data flags
-            pindexIter->nStatus &= ~(BLOCK_HAVE_DATA | BLOCK_HAVE_UNDO);
-            // Remove branch ID
-            pindexIter->nStatus &= ~BLOCK_ACTIVATES_UPGRADE;
-            pindexIter->nCachedBranchId = boost::none;
-            // Remove storage location
-            pindexIter->nFile = 0;
-            pindexIter->nDataPos = 0;
-            pindexIter->nUndoPos = 0;
-            // Remove various other things
-            pindexIter->nTx = 0;
-            pindexIter->nChainTx = 0;
-            pindexIter->nSproutValue = boost::none;
-            pindexIter->nChainSproutValue = boost::none;
-            pindexIter->nSequenceId = 0;
-            // Make sure it gets written
-            setDirtyBlockIndex.insert(pindexIter);
+            // Add to the list of blocks to remove
+            vBlocks.push_back(pindexIter);
+            if (pindexIter == pindexBestInvalid) {
+                // Reset invalid block marker if it was pointing to this block
+                pindexBestInvalid = NULL;
+            }
             // Update indices
             setBlockIndexCandidates.erase(pindexIter);
             auto ret = mapBlocksUnlinked.equal_range(pindexIter->pprev);
@@ -4057,6 +4051,24 @@ bool RewindBlockIndex(const CChainParams& params)
             }
         } else if (pindexIter->IsValid(BLOCK_VALID_TRANSACTIONS) && pindexIter->nChainTx) {
             setBlockIndexCandidates.insert(pindexIter);
+        }
+    }
+
+    // Set pindexBestHeader to the current chain tip
+    // (since we are about to delete the block it is pointing to)
+    pindexBestHeader = chainActive.Tip();
+
+    // Erase block indices on-disk
+    if (!pblocktree->EraseBatchSync(vBlocks)) {
+        return AbortNode(state, "Failed to erase from block index database");
+    }
+
+    // Erase block indices in-memory
+    for (auto pindex : vBlocks) {
+        auto ret = mapBlockIndex.find(*pindex->phashBlock);
+        if (ret != mapBlockIndex.end()) {
+            mapBlockIndex.erase(ret);
+            delete pindex;
         }
     }
 
@@ -4688,8 +4700,6 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         LogPrintf("dropmessagestest DROPPING RECV MESSAGE\n");
         return true;
     }
-
-
 
 
     if (strCommand == "version")
@@ -5340,12 +5350,13 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
         vector<CInv> vInv;
         BOOST_FOREACH(uint256& hash, vtxid) {
             CInv inv(MSG_TX, hash);
-            CTransaction tx;
-            bool fInMemPool = mempool.lookup(hash, tx);
-            if (!fInMemPool) continue; // another thread removed since queryHashes, maybe...
-            if ((pfrom->pfilter && pfrom->pfilter->IsRelevantAndUpdate(tx)) ||
-               (!pfrom->pfilter))
-                vInv.push_back(inv);
+            if (pfrom->pfilter) {
+                CTransaction tx;
+                bool fInMemPool = mempool.lookup(hash, tx);
+                if (!fInMemPool) continue; // another thread removed since queryHashes, maybe...
+                if (!pfrom->pfilter->IsRelevantAndUpdate(tx)) continue;
+            }
+            vInv.push_back(inv);
             if (vInv.size() == MAX_INV_SZ) {
                 pfrom->PushMessage("inv", vInv);
                 vInv.clear();
@@ -5467,6 +5478,20 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     }
 
 
+    else if (!(nLocalServices & NODE_BLOOM) &&
+              (strCommand == "filterload" ||
+               strCommand == "filteradd"))
+    {
+        if (pfrom->nVersion >= NO_BLOOM_VERSION) {
+            Misbehaving(pfrom->GetId(), 100);
+            return false;
+        } else if (GetBoolArg("-enforcenodebloom", false)) {
+            pfrom->fDisconnect = true;
+            return false;
+        }
+    }
+
+
     else if (strCommand == "filterload")
     {
         CBloomFilter filter;
@@ -5509,8 +5534,10 @@ bool static ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv, 
     else if (strCommand == "filterclear")
     {
         LOCK(pfrom->cs_filter);
-        delete pfrom->pfilter;
-        pfrom->pfilter = new CBloomFilter();
+        if (nLocalServices & NODE_BLOOM) {
+            delete pfrom->pfilter;
+            pfrom->pfilter = new CBloomFilter();
+        }
         pfrom->fRelayTxes = true;
     }
 

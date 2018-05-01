@@ -14,6 +14,7 @@ testScripts=(
     'paymentdisclosure.py'
     'prioritisetransaction.py'
     'wallet_treestate.py'
+    'wallet_anchorfork.py'
     'wallet_protectcoinbase.py'
     'wallet_shieldcoinbase.py'
     'wallet_mergetoaddress.py'
@@ -44,6 +45,7 @@ testScripts=(
     'nodehandling.py'
     'reindex.py'
     'decodescript.py'
+    'blockchain.py'
     'disablewallet.py'
     'zcjoinsplit.py'
     'zcjoinsplitdoublespend.py'
@@ -53,6 +55,9 @@ testScripts=(
     'bip65-cltv-p2p.py'
     'bipdersig-p2p.py'
     'overwinter_peer_management.py'
+    'rewind_index.py'
+    'p2p_txexpiry_dos.py'
+    'p2p_node_bloom.py'
 );
 testScriptsExt=(
     'getblocktemplate_longpoll.py'
