@@ -258,7 +258,7 @@ public:
 
 	// Founders reward script expects a vector of multisig addresses
 	vFoundersRewardAddress = {
-            ""
+            "k2A4ArX2YAQJ6Qiut7tNNWUhq3Np7Et525K"
 	};
 	assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
@@ -338,7 +338,7 @@ public:
         base58Prefixes[ZCVIEWING_KEY]      = {0xA8,0xAC,0x0C};
         base58Prefixes[ZCSPENDING_KEY]     = {0xAC,0x08};
 	// Founders reward script expects a vector of multisig addresses
-	vFoundersRewardAddress = { "" };
+	vFoundersRewardAddress = { "k2A4ArX2YAQJ6Qiut7tNNWUhq3Np7Et525K" };
 	assert(vFoundersRewardAddress.size() <= consensus.GetLastFoundersRewardBlockHeight());
     }
 
