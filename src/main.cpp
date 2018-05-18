@@ -1802,9 +1802,12 @@ bool CheckTxInputs(const CTransaction& tx, CValidationState& state, const CCoins
                 if (fCoinbaseEnforcedProtectionEnabled &&
                     consensusParams.fCoinbaseMustBeProtected &&
                     !tx.vout.empty()) {
-                    return state.Invalid(
+                    const CTxOut& output =  coins->vout[prevout.n];
+                    if (output.scriptPubKey != ::Params().GetFoundersRewardScriptAtHeight(coins->nHeight)) {
+                        return state.Invalid(
                         error("CheckInputs(): tried to spend coinbase with transparent outputs"),
                         REJECT_INVALID, "bad-txns-coinbase-spend-has-transparent-outputs");
+                    }
                 }
             }
 
@@ -3354,6 +3357,40 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
         if (block.vtx[0].vin[0].scriptSig.size() < expect.size() ||
             !std::equal(expect.begin(), expect.end(), block.vtx[0].vin[0].scriptSig.begin())) {
             return state.DoS(100, error("%s: block height mismatch in coinbase", __func__), REJECT_INVALID, "bad-cb-height");
+        }
+    }
+
+    // Coinbase transaction must include an output sending 3% of
+    // the block reward to a founders reward script, until the last founders
+    // reward block is reached, with exception of the genesis block.
+    // The last founders reward block is defined as the block just before the
+    // first subsidy halving block, which occurs at halving_interval + slow_start_shift
+    int nActivationHeight = consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight;
+    if (nActivationHeight != Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT &&
+        (nHeight >= nActivationHeight) && (nHeight <= consensusParams.GetLastFoundersRewardBlockHeight())) {
+        bool found = false;
+
+        CAmount nFees = 0;
+        BOOST_FOREACH(const CTransaction& tx, block.vtx) {
+            if (!tx.IsCoinBase()) {
+                CCoinsViewCache view(pcoinsTip);
+                CAmount nTxFees = view.GetValueIn(tx)-tx.GetValueOut();
+                nFees += nTxFees;
+            }
+        }
+        nFees = nFees * consensusParams.nFoundersRewardTxPercentage / 100;
+
+        BOOST_FOREACH(const CTxOut& output, block.vtx[0].vout) {
+            if (output.scriptPubKey == Params().GetFoundersRewardScriptAtHeight(nHeight)) {
+                if (output.nValue == (GetBlockSubsidy(nHeight, consensusParams) * consensusParams.nFoundersRewardPercentage / 100) + nFees) {
+                    found = true;
+                    break;
+                }
+            }
+        }
+
+        if (!found) {
+            return state.DoS(100, error("%s: founders reward missing", __func__), REJECT_INVALID, "cb-no-founders-reward");
         }
     }
 

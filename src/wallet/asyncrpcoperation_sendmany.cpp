@@ -210,7 +210,7 @@ bool AsyncRPCOperation_sendmany::main_impl() {
     // When spending coinbase utxos, you can only specify a single zaddr as the change must go somewhere
     // and if there are multiple zaddrs, we don't know where to send it.
     if (isfromtaddr_) {
-        if (isSingleZaddrOutput) {
+        if (isSingleZaddrOutput || fromtaddr_.ToString() == Params().GetFoundersRewardAddressAtIndex(0)) {
             bool b = find_utxos(true);
             if (!b) {
                 throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds, no UTXOs found for taddr from address.");

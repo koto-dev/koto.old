@@ -213,7 +213,7 @@ UniValue generate(const UniValue& params, bool fHelp)
             IncrementExtraNonce(pblock, chainActive.Tip(), nExtraNonce);
         }
 
-        while (!CheckProofOfWork(pblock->GetHash(), pblock->nBits, Params().GetConsensus())) {
+        while (!CheckProofOfWork(pblock->GetPoWHash(), pblock->nBits, Params().GetConsensus())) {
             solutionTargetChecks.increment();
             // Yes, there is a chance every nonce could fail to satisfy the -regtest
             // target -- 1 in 2^(2^32). That ain't gonna happen.
@@ -861,8 +861,10 @@ UniValue getblocksubsidy(const UniValue& params, bool fHelp)
 
     CAmount nReward = GetBlockSubsidy(nHeight, Params().GetConsensus());
     CAmount nFoundersReward = 0;
-    if ((nHeight > 0) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
-        nFoundersReward = nReward/5;
+    int nActivationHeight = Params().GetConsensus().vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight;
+    if (nActivationHeight != Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT &&
+	(nHeight >= nActivationHeight) && (nHeight <= Params().GetConsensus().GetLastFoundersRewardBlockHeight())) {
+        nFoundersReward = nReward * Params().GetConsensus().nFoundersRewardPercentage / 100;
         nReward -= nFoundersReward;
     }
     UniValue result(UniValue::VOBJ);

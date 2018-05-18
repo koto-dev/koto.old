@@ -283,7 +283,7 @@ bool CBlockTreeDB::LoadBlockIndexGuts()
                 if (header.GetHash() != pindexNew->GetBlockHash())
                     return error("LoadBlockIndex(): block header inconsistency detected: on-disk = %s, in-memory = %s",
                        diskindex.ToString(),  pindexNew->ToString());
-                //if (!CheckProofOfWork(pindexNew->GetBlockHash(), pindexNew->nBits, Params().GetConsensus()))
+                //if (!CheckProofOfWork(pindexNew->GetBlockPoWHash(), pindexNew->nBits, Params().GetConsensus()))
                 //    return error("LoadBlockIndex(): CheckProofOfWork failed: %s", pindexNew->ToString());
 
                 pcursor->Next();

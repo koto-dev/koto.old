@@ -1,3 +1,4 @@
+#if 0
 #if defined(HAVE_CONFIG_H)
 #include "config/bitcoin-config.h"
 #endif
@@ -289,3 +290,4 @@ TEST(equihash_tests, check_optimised_solver_cancelled) {
     }
 }
 #endif // ENABLE_MINING
+#endif

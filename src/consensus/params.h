@@ -80,6 +80,8 @@ struct Params {
      */
     int SubsidySlowStartShift() const { return nSubsidySlowStartInterval / 2; }
     int nSubsidyHalvingInterval;
+    int nFoundersRewardPercentage;
+    int nFoundersRewardTxPercentage;
     int GetLastFoundersRewardBlockHeight() const {
         return nSubsidyHalvingInterval + SubsidySlowStartShift() - 1;
     }

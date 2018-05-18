@@ -313,8 +313,8 @@ int printMetrics(size_t cols, bool mining)
     }
 
     if (mining && loaded) {
-        std::cout << "- " << strprintf(_("You have completed %d Equihash solver runs."), ehSolverRuns.get()) << std::endl;
-        lines++;
+//        std::cout << "- " << strprintf(_("You have completed %d Equihash solver runs."), ehSolverRuns.get()) << std::endl;
+//        lines++;
 
         int mined = 0;
         int orphaned = 0;
@@ -334,8 +334,11 @@ int printMetrics(size_t cols, bool mining)
                         chainActive.Contains(mapBlockIndex[hash])) {
                     int height = mapBlockIndex[hash]->nHeight;
                     CAmount subsidy = GetBlockSubsidy(height, consensusParams);
-                    if ((height > 0) && (height <= consensusParams.GetLastFoundersRewardBlockHeight())) {
-                        subsidy -= subsidy/5;
+
+                    int nActivationHeight = consensusParams.vUpgrades[Consensus::UPGRADE_OVERWINTER].nActivationHeight;
+                    if (nActivationHeight != Consensus::NetworkUpgrade::NO_ACTIVATION_HEIGHT &&
+                        (height >= nActivationHeight) && (height <= consensusParams.GetLastFoundersRewardBlockHeight())) {
+                        subsidy -= subsidy * consensusParams.nFoundersRewardPercentage / 100;
                     }
                     if (std::max(0, COINBASE_MATURITY - (tipHeight - height)) > 0) {
                         immature += subsidy;

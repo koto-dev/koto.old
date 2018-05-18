@@ -12,6 +12,7 @@
 // NDSS ’16, 21-24 February 2016, San Diego, CA, USA
 // https://www.internetsociety.org/sites/default/files/blogs-media/equihash-asymmetric-proof-of-work-based-generalized-birthday-problem.pdf
 
+#if 0
 #if defined(HAVE_CONFIG_H)
 #include "config/bitcoin-config.h"
 #endif
@@ -814,3 +815,4 @@ template bool Equihash<48,5>::OptimisedSolve(const eh_HashState& base_state,
                                              const std::function<bool(EhSolverCancelCheck)> cancelled);
 #endif
 template bool Equihash<48,5>::IsValidSolution(const eh_HashState& base_state, std::vector<unsigned char> soln);
+#endif
