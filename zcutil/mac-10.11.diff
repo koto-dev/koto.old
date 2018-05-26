@@ -1,5 +1,5 @@
 diff --git a/depends/Makefile b/depends/Makefile
-index 897c4ad..4486101 100644
+index 5c1fb9f..d848817 100644
 --- a/depends/Makefile
 +++ b/depends/Makefile
 @@ -99,8 +99,8 @@ $(host_prefix)/.stamp_$(final_build_id): $(native_packages) $(packages)
@@ -28,54 +28,1373 @@ index 4e58bec..15545b4 100644
  
  darwin_CFLAGS=-pipe
  darwin_CXXFLAGS=$(darwin_CFLAGS)
-diff --git a/src/snark/src/common/profiling.cpp b/src/snark/src/common/profiling.cpp
-index d227203..18f3194 100644
---- a/src/snark/src/common/profiling.cpp
-+++ b/src/snark/src/common/profiling.cpp
-@@ -25,7 +25,12 @@
- #ifndef NO_PROCPS
+diff --git a/src/Makefile.am b/src/Makefile.am
+index 9a48556..7ffd67b 100644
+--- a/src/Makefile.am
++++ b/src/Makefile.am
+@@ -563,8 +563,8 @@ if GLIBC_BACK_COMPAT
+   libzcashconsensus_la_SOURCES += compat/glibc_compat.cpp
+ endif
+ 
+-libzcashconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS)
+-libzcashconsensus_la_LIBADD = $(LIBSECP256K1)
++libzcashconsensus_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined $(RELDFLAGS) -L$(srcdir)
++libzcashconsensus_la_LIBADD = $(LIBSECP256K1) -lboost_system -lsodium -lzcash -lbitcoin_common
+ libzcashconsensus_la_CPPFLAGS = $(AM_CPPFLAGS) -I$(builddir)/obj -I$(srcdir)/secp256k1/include -DBUILD_BITCOIN_INTERNAL
+ libzcashconsensus_la_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+ 
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+index bf7f43d..2c62060 100644
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.cpp
+@@ -10,8 +10,8 @@
+ namespace libsnark {
+ 
+ #ifdef PROFILE_OP_COUNTS
+-long long alt_bn128_G1::add_cnt = 0;
+-long long alt_bn128_G1::dbl_cnt = 0;
++int64_t alt_bn128_G1::add_cnt = 0;
++int64_t alt_bn128_G1::dbl_cnt = 0;
+ #endif
+ 
+ std::vector<size_t> alt_bn128_G1::wnaf_window_table;
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp
+index da11a2e..7053fe6 100644
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g1.hpp
+@@ -20,8 +20,8 @@ std::istream& operator>>(std::istream &, alt_bn128_G1&);
+ class alt_bn128_G1 {
+ public:
+ #ifdef PROFILE_OP_COUNTS
+-    static long long add_cnt;
+-    static long long dbl_cnt;
++    static int64_t add_cnt;
++    static int64_t dbl_cnt;
+ #endif
+     static std::vector<size_t> wnaf_window_table;
+     static std::vector<size_t> fixed_base_exp_window_table;
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+index c4152e4..4b592e8 100644
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.cpp
+@@ -10,8 +10,8 @@
+ namespace libsnark {
+ 
+ #ifdef PROFILE_OP_COUNTS
+-long long alt_bn128_G2::add_cnt = 0;
+-long long alt_bn128_G2::dbl_cnt = 0;
++int64_t alt_bn128_G2::add_cnt = 0;
++int64_t alt_bn128_G2::dbl_cnt = 0;
+ #endif
+ 
+ std::vector<size_t> alt_bn128_G2::wnaf_window_table;
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp
+index a996a2d..d6fa6a1 100644
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_g2.hpp
+@@ -20,8 +20,8 @@ std::istream& operator>>(std::istream &, alt_bn128_G2&);
+ class alt_bn128_G2 {
+ public:
+ #ifdef PROFILE_OP_COUNTS
+-    static long long add_cnt;
+-    static long long dbl_cnt;
++    static int64_t add_cnt;
++    static int64_t dbl_cnt;
+ #endif
+     static std::vector<size_t> wnaf_window_table;
+     static std::vector<size_t> fixed_base_exp_window_table;
+diff --git a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
+index db556c5..07b6a8c 100644
+--- a/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
++++ b/src/snark/libsnark/algebra/curves/alt_bn128/alt_bn128_pairing.cpp
+@@ -324,7 +324,7 @@ alt_bn128_ate_G2_precomp alt_bn128_ate_precompute_G2(const alt_bn128_G2& Q)
+     bool found_one = false;
+     alt_bn128_ate_ell_coeffs c;
+ 
+-    for (long i = loop_count.max_bits(); i >= 0; --i)
++    for (int64_t i = loop_count.max_bits(); i >= 0; --i)
+     {
+         const bool bit = loop_count.test_bit(i);
+         if (!found_one)
+@@ -378,7 +378,7 @@ alt_bn128_Fq12 alt_bn128_ate_miller_loop(const alt_bn128_ate_G1_precomp &prec_P,
+     const bigint<alt_bn128_Fr::num_limbs> &loop_count = alt_bn128_ate_loop_count;
+     alt_bn128_ate_ell_coeffs c;
+ 
+-    for (long i = loop_count.max_bits(); i >= 0; --i)
++    for (int64_t i = loop_count.max_bits(); i >= 0; --i)
+     {
+         const bool bit = loop_count.test_bit(i);
+         if (!found_one)
+@@ -432,7 +432,7 @@ alt_bn128_Fq12 alt_bn128_ate_double_miller_loop(const alt_bn128_ate_G1_precomp &
+     size_t idx = 0;
+ 
+     const bigint<alt_bn128_Fr::num_limbs> &loop_count = alt_bn128_ate_loop_count;
+-    for (long i = loop_count.max_bits(); i >= 0; --i)
++    for (int64_t i = loop_count.max_bits(); i >= 0; --i)
+     {
+         const bool bit = loop_count.test_bit(i);
+         if (!found_one)
+diff --git a/src/snark/libsnark/algebra/curves/curve_utils.tcc b/src/snark/libsnark/algebra/curves/curve_utils.tcc
+index 251d75d..38140cd 100644
+--- a/src/snark/libsnark/algebra/curves/curve_utils.tcc
++++ b/src/snark/libsnark/algebra/curves/curve_utils.tcc
+@@ -16,7 +16,7 @@ GroupT scalar_mul(const GroupT &base, const bigint<m> &scalar)
+     GroupT result = GroupT::zero();
+ 
+     bool found_one = false;
+-    for (long i = scalar.max_bits() - 1; i >= 0; --i)
++    for (int64_t i = scalar.max_bits() - 1; i >= 0; --i)
+     {
+         if (found_one)
+         {
+diff --git a/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc b/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
+index 138b82d..79f2ffe 100644
+--- a/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
++++ b/src/snark/libsnark/algebra/evaluation_domain/domains/basic_radix2_domain_aux.tcc
+@@ -74,11 +74,11 @@ void _basic_serial_radix2_FFT(std::vector<FieldT> &a, const FieldT &omega)
+ template<typename FieldT>
+ void _basic_parallel_radix2_FFT_inner(std::vector<FieldT> &a, const FieldT &omega, const size_t log_cpus)
+ {
+-    const size_t num_cpus = 1ul<<log_cpus;
++    const size_t num_cpus = UINT64_C(1)<<log_cpus;
+ 
+     const size_t m = a.size();
+     const size_t log_m = log2(m);
+-    assert(m == 1ul<<log_m);
++    assert(m == UINT64_C(1)<<log_m);
+ 
+     if (log_m < log_cpus)
+     {
+@@ -90,7 +90,7 @@ void _basic_parallel_radix2_FFT_inner(std::vector<FieldT> &a, const FieldT &omeg
+     std::vector<std::vector<FieldT> > tmp(num_cpus);
+     for (size_t j = 0; j < num_cpus; ++j)
+     {
+-        tmp[j].resize(1ul<<(log_m-log_cpus), FieldT::zero());
++        tmp[j].resize(UINT64_C(1)<<(log_m-log_cpus), FieldT::zero());
+     }
+ 
+ #ifdef MULTICORE
+@@ -102,7 +102,7 @@ void _basic_parallel_radix2_FFT_inner(std::vector<FieldT> &a, const FieldT &omeg
+         const FieldT omega_step = omega^(j<<(log_m - log_cpus));
+ 
+         FieldT elt = FieldT::one();
+-        for (size_t i = 0; i < 1ul<<(log_m - log_cpus); ++i)
++        for (size_t i = 0; i < UINT64_C(1)<<(log_m - log_cpus); ++i)
+         {
+             for (size_t s = 0; s < num_cpus; ++s)
+             {
+@@ -135,7 +135,7 @@ void _basic_parallel_radix2_FFT_inner(std::vector<FieldT> &a, const FieldT &omeg
+ #endif
+     for (size_t i = 0; i < num_cpus; ++i)
+     {
+-        for (size_t j = 0; j < 1ul<<(log_m - log_cpus); ++j)
++        for (size_t j = 0; j < UINT64_C(1)<<(log_m - log_cpus); ++j)
+         {
+             // now: i = idx >> (log_m - log_cpus) and j = idx % (1u << (log_m - log_cpus)), for idx = ((i<<(log_m-log_cpus))+j) % (1u << log_m)
+             a[(j<<log_cpus) + i] = tmp[i][j];
+diff --git a/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc b/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc
+index 8e3ea7a..ec58ad8 100644
+--- a/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc
++++ b/src/snark/libsnark/algebra/evaluation_domain/evaluation_domain.tcc
+@@ -54,9 +54,9 @@ std::shared_ptr<evaluation_domain<FieldT> > get_evaluation_domain(const size_t m
+     }
+     else
+     {
+-        const size_t big = 1ul<<(log2(min_size)-1);
++        const size_t big = UINT64_C(1)<<(log2(min_size)-1);
+         const size_t small = min_size - big;
+-        const size_t rounded_small = (1ul<<log2(small));
++        const size_t rounded_small = (UINT64_C(1)<<log2(small));
+         if (big == rounded_small)
+         {
+             if (log2(big + rounded_small) < FieldT::s+1)
+diff --git a/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp b/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp
+index a8a2c92..836ebf0 100644
+--- a/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp
++++ b/src/snark/libsnark/algebra/exponentiation/exponentiation.hpp
+@@ -22,7 +22,7 @@ template<typename FieldT, mp_size_t m>
+ FieldT power(const FieldT &base, const bigint<m> &exponent);
+ 
+ template<typename FieldT>
+-FieldT power(const FieldT &base, const unsigned long exponent);
++FieldT power(const FieldT &base, const uint64_t exponent);
+ 
+ } // libsnark
+ 
+diff --git a/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc b/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc
+index dd557eb..7ac3bf5 100644
+--- a/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc
++++ b/src/snark/libsnark/algebra/exponentiation/exponentiation.tcc
+@@ -25,7 +25,7 @@ FieldT power(const FieldT &base, const bigint<m> &exponent)
+ 
+     bool found_one = false;
+ 
+-    for (long i = exponent.max_bits() - 1; i >= 0; --i)
++    for (int64_t i = exponent.max_bits() - 1; i >= 0; --i)
+     {
+         if (found_one)
+         {
+@@ -43,7 +43,7 @@ FieldT power(const FieldT &base, const bigint<m> &exponent)
+ }
+ 
+ template<typename FieldT>
+-FieldT power(const FieldT &base, const unsigned long exponent)
++FieldT power(const FieldT &base, const uint64_t exponent)
+ {
+     return power<FieldT>(base, bigint<1>(exponent));
+ }
+diff --git a/src/snark/libsnark/algebra/fields/bigint.hpp b/src/snark/libsnark/algebra/fields/bigint.hpp
+index 50f78b7..dc47a7e 100644
+--- a/src/snark/libsnark/algebra/fields/bigint.hpp
++++ b/src/snark/libsnark/algebra/fields/bigint.hpp
+@@ -33,7 +33,7 @@ public:
+     mp_limb_t data[n] = {0};
+ 
+     bigint() = default;
+-    bigint(const unsigned long x); /// Initialize from a small integer
++    bigint(const uint64_t x); /// Initalize from a small integer
+     bigint(const char* s); /// Initialize from a string containing an integer in decimal notation
+     bigint(const mpz_t r); /// Initialize from MPZ element
+ 
+@@ -46,7 +46,7 @@ public:
+     size_t max_bits() const { return n * GMP_NUMB_BITS; }
+     size_t num_bits() const;
+ 
+-    unsigned long as_ulong() const; /* return the last limb of the integer */
++    uint64_t as_ulong() const; /* return the last limb of the integer */
+     void to_mpz(mpz_t r) const;
+     bool test_bit(const std::size_t bitno) const;
+ 
+diff --git a/src/snark/libsnark/algebra/fields/bigint.tcc b/src/snark/libsnark/algebra/fields/bigint.tcc
+index 81befd9..dfd5758 100644
+--- a/src/snark/libsnark/algebra/fields/bigint.tcc
++++ b/src/snark/libsnark/algebra/fields/bigint.tcc
+@@ -17,9 +17,9 @@
+ namespace libsnark {
+ 
+ template<mp_size_t n>
+-bigint<n>::bigint(const unsigned long x) /// Initialize from a small integer
++bigint<n>::bigint(const uint64_t x) /// Initialize from a small integer
+ {
+-    static_assert(ULONG_MAX <= GMP_NUMB_MAX, "unsigned long does not fit in a GMP limb");
++    static_assert(UINT64_MAX <= GMP_NUMB_MAX, "uint64_t does not fit in a GMP limb");
+     this->data[0] = x;
+ }
+ 
+@@ -105,7 +105,7 @@ template<mp_size_t n>
+ size_t bigint<n>::num_bits() const
+ {
+ /*
+-    for (long i = max_bits(); i >= 0; --i)
++    for (int64_t i = max_bits(); i >= 0; --i)
+     {
+         if (this->test_bit(i))
+         {
+@@ -115,7 +115,7 @@ size_t bigint<n>::num_bits() const
+ 
+     return 0;
+ */
+-    for (long i = n-1; i >= 0; --i)
++    for (int64_t i = n-1; i >= 0; --i)
+     {
+         mp_limb_t x = this->data[i];
+         if (x == 0)
+@@ -131,7 +131,7 @@ size_t bigint<n>::num_bits() const
+ }
+ 
+ template<mp_size_t n>
+-unsigned long bigint<n>::as_ulong() const
++uint64_t bigint<n>::as_ulong() const
+ {
+     return this->data[0];
+ }
+diff --git a/src/snark/libsnark/algebra/fields/field_utils.tcc b/src/snark/libsnark/algebra/fields/field_utils.tcc
+index 13197b2..66b5323 100644
+--- a/src/snark/libsnark/algebra/fields/field_utils.tcc
++++ b/src/snark/libsnark/algebra/fields/field_utils.tcc
+@@ -171,7 +171,7 @@ void batch_invert(std::vector<FieldT> &vec)
+ 
+     FieldT acc_inverse = acc.inverse();
+ 
+-    for (long i = vec.size()-1; i >= 0; --i)
++    for (int64_t i = vec.size()-1; i >= 0; --i)
+     {
+         const FieldT old_el = vec[i];
+         vec[i] = acc_inverse * prod[i];
+diff --git a/src/snark/libsnark/algebra/fields/fp.hpp b/src/snark/libsnark/algebra/fields/fp.hpp
+index 9679275..5baf20a 100644
+--- a/src/snark/libsnark/algebra/fields/fp.hpp
++++ b/src/snark/libsnark/algebra/fields/fp.hpp
+@@ -44,11 +44,11 @@ public:
+     static const mp_size_t num_limbs = n;
+     static const constexpr bigint<n>& mod = modulus;
+ #ifdef PROFILE_OP_COUNTS
+-    static long long add_cnt;
+-    static long long sub_cnt;
+-    static long long mul_cnt;
+-    static long long sqr_cnt;
+-    static long long inv_cnt;
++    static int64_t add_cnt;
++    static int64_t sub_cnt;
++    static int64_t mul_cnt;
++    static int64_t sqr_cnt;
++    static int64_t inv_cnt;
+ #endif
+     static size_t num_bits;
+     static bigint<n> euler; // (modulus-1)/2
+@@ -67,9 +67,9 @@ public:
+ 
+     Fp_model() {};
+     Fp_model(const bigint<n> &b);
+-    Fp_model(const long x, const bool is_unsigned=false);
++    Fp_model(const int64_t x, const bool is_unsigned=false);
+ 
+-    void set_ulong(const unsigned long x);
++    void set_ulong(const uint64_t x);
+ 
+     void mul_reduce(const bigint<n> &other);
+ 
+@@ -82,7 +82,7 @@ public:
+     /* Return the last limb of the standard representation of the
+        field element. E.g. on 64-bit architectures Fp(123).as_ulong()
+        and Fp(2^64+123).as_ulong() would both return 123. */
+-    unsigned long as_ulong() const;
++    uint64_t as_ulong() const;
+ 
+     bool operator==(const Fp_model& other) const;
+     bool operator!=(const Fp_model& other) const;
+@@ -93,7 +93,7 @@ public:
+     Fp_model& operator+=(const Fp_model& other);
+     Fp_model& operator-=(const Fp_model& other);
+     Fp_model& operator*=(const Fp_model& other);
+-    Fp_model& operator^=(const unsigned long pow);
++    Fp_model& operator^=(const uint64_t pow);
+ 
+     template<mp_size_t m>
+     Fp_model& operator^=(const bigint<m> &pow);
+@@ -107,7 +107,7 @@ public:
+     Fp_model inverse() const;
+     Fp_model sqrt() const; // HAS TO BE A SQUARE (else does not terminate)
+ 
+-    Fp_model operator^(const unsigned long pow) const;
++    Fp_model operator^(const uint64_t pow) const;
+     template<mp_size_t m>
+     Fp_model operator^(const bigint<m> &pow) const;
+ 
+@@ -125,19 +125,19 @@ public:
+ 
+ #ifdef PROFILE_OP_COUNTS
+ template<mp_size_t n, const bigint<n>& modulus>
+-long long Fp_model<n, modulus>::add_cnt = 0;
++int64_t Fp_model<n, modulus>::add_cnt = 0;
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-long long Fp_model<n, modulus>::sub_cnt = 0;
++int64_t Fp_model<n, modulus>::sub_cnt = 0;
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-long long Fp_model<n, modulus>::mul_cnt = 0;
++int64_t Fp_model<n, modulus>::mul_cnt = 0;
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-long long Fp_model<n, modulus>::sqr_cnt = 0;
++int64_t Fp_model<n, modulus>::sqr_cnt = 0;
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-long long Fp_model<n, modulus>::inv_cnt = 0;
++int64_t Fp_model<n, modulus>::inv_cnt = 0;
+ #endif
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+diff --git a/src/snark/libsnark/algebra/fields/fp.tcc b/src/snark/libsnark/algebra/fields/fp.tcc
+index 566e993..25b723c 100644
+--- a/src/snark/libsnark/algebra/fields/fp.tcc
++++ b/src/snark/libsnark/algebra/fields/fp.tcc
+@@ -194,7 +194,7 @@ Fp_model<n,modulus>::Fp_model(const bigint<n> &b)
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-Fp_model<n,modulus>::Fp_model(const long x, const bool is_unsigned)
++Fp_model<n,modulus>::Fp_model(const int64_t x, const bool is_unsigned)
+ {
+     if (is_unsigned || x >= 0)
+     {
+@@ -210,7 +210,7 @@ Fp_model<n,modulus>::Fp_model(const long x, const bool is_unsigned)
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-void Fp_model<n,modulus>::set_ulong(const unsigned long x)
++void Fp_model<n,modulus>::set_ulong(const uint64_t x)
+ {
+     this->mont_repr.clear();
+     this->mont_repr.data[0] = x;
+@@ -237,7 +237,7 @@ bigint<n> Fp_model<n,modulus>::as_bigint() const
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-unsigned long Fp_model<n,modulus>::as_ulong() const
++uint64_t Fp_model<n,modulus>::as_ulong() const
+ {
+     return this->as_bigint().as_ulong();
+ }
+@@ -502,7 +502,7 @@ Fp_model<n,modulus>& Fp_model<n,modulus>::operator*=(const Fp_model<n,modulus>&
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-Fp_model<n,modulus>& Fp_model<n,modulus>::operator^=(const unsigned long pow)
++Fp_model<n,modulus>& Fp_model<n,modulus>::operator^=(const uint64_t pow)
+ {
+     (*this) = power<Fp_model<n, modulus> >(*this, pow);
+     return (*this);
+@@ -538,7 +538,7 @@ Fp_model<n,modulus> Fp_model<n,modulus>::operator*(const Fp_model<n,modulus>& ot
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-Fp_model<n,modulus> Fp_model<n,modulus>::operator^(const unsigned long pow) const
++Fp_model<n,modulus> Fp_model<n,modulus>::operator^(const uint64_t pow) const
+ {
+     Fp_model<n, modulus> r(*this);
+     return (r ^= pow);
+@@ -690,7 +690,7 @@ Fp_model<n, modulus> Fp_model<n,modulus>::random_element() /// returns random el
+             const std::size_t part = bitno/GMP_NUMB_BITS;
+             const std::size_t bit = bitno - (GMP_NUMB_BITS*part);
+ 
+-            r.mont_repr.data[part] &= ~(1ul<<bit);
++            r.mont_repr.data[part] &= ~(UINT64_C(1)<<bit);
+ 
+             bitno--;
+         }
+diff --git a/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp b/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp
+index 1de9d88..62ac8aa 100644
+--- a/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp
++++ b/src/snark/libsnark/algebra/fields/fp12_2over3over2.hpp
+@@ -66,7 +66,7 @@ public:
+     Fp12_2over3over2_model squared_karatsuba() const;
+     Fp12_2over3over2_model squared_complex() const;
+     Fp12_2over3over2_model inverse() const;
+-    Fp12_2over3over2_model Frobenius_map(unsigned long power) const;
++    Fp12_2over3over2_model Frobenius_map(uint64_t power) const;
+     Fp12_2over3over2_model unitary_inverse() const;
+     Fp12_2over3over2_model cyclotomic_squared() const;
+ 
+diff --git a/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc b/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc
+index 2fbc0b6..dda3f40 100644
+--- a/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc
++++ b/src/snark/libsnark/algebra/fields/fp12_2over3over2.tcc
+@@ -156,7 +156,7 @@ Fp12_2over3over2_model<n,modulus> Fp12_2over3over2_model<n,modulus>::inverse() c
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-Fp12_2over3over2_model<n,modulus> Fp12_2over3over2_model<n,modulus>::Frobenius_map(unsigned long power) const
++Fp12_2over3over2_model<n,modulus> Fp12_2over3over2_model<n,modulus>::Frobenius_map(uint64_t power) const
+ {
+     return Fp12_2over3over2_model<n,modulus>(c0.Frobenius_map(power),
+                                              Frobenius_coeffs_c1[power % 12] * c1.Frobenius_map(power));
+@@ -339,16 +339,16 @@ Fp12_2over3over2_model<n, modulus> Fp12_2over3over2_model<n,modulus>::cyclotomic
+     Fp12_2over3over2_model<n,modulus> res = Fp12_2over3over2_model<n,modulus>::one();
+ 
+     bool found_one = false;
+-    for (long i = m-1; i >= 0; --i)
++    for (int64_t i = m-1; i >= 0; --i)
+     {
+-        for (long j = GMP_NUMB_BITS - 1; j >= 0; --j)
++        for (int64_t j = GMP_NUMB_BITS - 1; j >= 0; --j)
+         {
+             if (found_one)
+             {
+                 res = res.cyclotomic_squared();
+             }
+ 
+-            if (exponent.data[i] & (1ul<<j))
++            if (exponent.data[i] & (UINT64_C(1)<<j))
+             {
+                 found_one = true;
+                 res = res * (*this);
+diff --git a/src/snark/libsnark/algebra/fields/fp2.hpp b/src/snark/libsnark/algebra/fields/fp2.hpp
+index f077269..276c923 100644
+--- a/src/snark/libsnark/algebra/fields/fp2.hpp
++++ b/src/snark/libsnark/algebra/fields/fp2.hpp
+@@ -66,7 +66,7 @@ public:
+     Fp2_model operator-() const;
+     Fp2_model squared() const; // default is squared_complex
+     Fp2_model inverse() const;
+-    Fp2_model Frobenius_map(unsigned long power) const;
++    Fp2_model Frobenius_map(uint64_t power) const;
+     Fp2_model sqrt() const; // HAS TO BE A SQUARE (else does not terminate)
+     Fp2_model squared_karatsuba() const;
+     Fp2_model squared_complex() const;
+diff --git a/src/snark/libsnark/algebra/fields/fp2.tcc b/src/snark/libsnark/algebra/fields/fp2.tcc
+index 1632a04..fb3eacd 100644
+--- a/src/snark/libsnark/algebra/fields/fp2.tcc
++++ b/src/snark/libsnark/algebra/fields/fp2.tcc
+@@ -136,7 +136,7 @@ Fp2_model<n,modulus> Fp2_model<n,modulus>::inverse() const
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-Fp2_model<n,modulus> Fp2_model<n,modulus>::Frobenius_map(unsigned long power) const
++Fp2_model<n,modulus> Fp2_model<n,modulus>::Frobenius_map(uint64_t power) const
+ {
+     return Fp2_model<n,modulus>(c0,
+                                 Frobenius_coeffs_c1[power % 2] * c1);
+diff --git a/src/snark/libsnark/algebra/fields/fp6_3over2.hpp b/src/snark/libsnark/algebra/fields/fp6_3over2.hpp
+index 335d61c..912c58a 100644
+--- a/src/snark/libsnark/algebra/fields/fp6_3over2.hpp
++++ b/src/snark/libsnark/algebra/fields/fp6_3over2.hpp
+@@ -63,7 +63,7 @@ public:
+     Fp6_3over2_model operator-() const;
+     Fp6_3over2_model squared() const;
+     Fp6_3over2_model inverse() const;
+-    Fp6_3over2_model Frobenius_map(unsigned long power) const;
++    Fp6_3over2_model Frobenius_map(uint64_t power) const;
+ 
+     static my_Fp2 mul_by_non_residue(const my_Fp2 &elt);
+ 
+diff --git a/src/snark/libsnark/algebra/fields/fp6_3over2.tcc b/src/snark/libsnark/algebra/fields/fp6_3over2.tcc
+index f4fffde..86b864e 100644
+--- a/src/snark/libsnark/algebra/fields/fp6_3over2.tcc
++++ b/src/snark/libsnark/algebra/fields/fp6_3over2.tcc
+@@ -149,7 +149,7 @@ Fp6_3over2_model<n,modulus> Fp6_3over2_model<n,modulus>::inverse() const
+ }
+ 
+ template<mp_size_t n, const bigint<n>& modulus>
+-Fp6_3over2_model<n,modulus> Fp6_3over2_model<n,modulus>::Frobenius_map(unsigned long power) const
++Fp6_3over2_model<n,modulus> Fp6_3over2_model<n,modulus>::Frobenius_map(uint64_t power) const
+ {
+     return Fp6_3over2_model<n,modulus>(c0.Frobenius_map(power),
+                                        Frobenius_coeffs_c1[power % 6] * c1.Frobenius_map(power),
+diff --git a/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp b/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp
+index d2da59e..ac8c31a 100644
+--- a/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp
++++ b/src/snark/libsnark/algebra/fields/tests/test_bigint.cpp
+@@ -13,7 +13,7 @@ using namespace libsnark;
+ 
+ TEST(algebra, bigint)
+ {
+-    static_assert(ULONG_MAX == 0xFFFFFFFFFFFFFFFFul, "unsigned long not 64-bit");
++    static_assert(UINT64_MAX == 0xFFFFFFFFFFFFFFFFul, "uint64_t not 64-bit");
+     static_assert(GMP_NUMB_BITS == 64, "GMP limb not 64-bit");
+ 
+     const char *b1_decimal = "76749407";
+@@ -22,15 +22,15 @@ TEST(algebra, bigint)
+     const char *b2_binary = "0000000000000000000000000000010101111101101000000110100001011010"
+                             "1101101010001001000001101000101000100110011001110001111110100010";
+ 
+-    bigint<1> b0 = bigint<1>(0ul);
++    bigint<1> b0 = bigint<1>(UINT64_C(0));
+     bigint<1> b1 = bigint<1>(b1_decimal);
+     bigint<2> b2 = bigint<2>(b2_decimal);
+ 
+-    EXPECT_EQ(b0.as_ulong(), 0ul);
++    EXPECT_EQ(b0.as_ulong(), UINT64_C(0));
+     EXPECT_TRUE(b0.is_zero());
+-    EXPECT_EQ(b1.as_ulong(), 76749407ul);
++    EXPECT_EQ(b1.as_ulong(), UINT64_C(76749407));
+     EXPECT_FALSE(b1.is_zero());
+-    EXPECT_EQ(b2.as_ulong(), 15747124762497195938ul);
++    EXPECT_EQ(b2.as_ulong(), UINT64_C(15747124762497195938));
+     EXPECT_FALSE(b2.is_zero());
+     EXPECT_NE(b0, b1);
+     EXPECT_FALSE(b0 == b1);
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc b/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc
+index a6b14c4..e1783a8 100644
+--- a/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc
++++ b/src/snark/libsnark/algebra/scalar_multiplication/multiexp.tcc
+@@ -40,7 +40,7 @@ public:
+ #if defined(__x86_64__) && defined(USE_ASM)
+         if (n == 3)
+         {
+-            long res;
++            int64_t res;
+             __asm__
+                 ("// check for overflow           \n\t"
+                  "mov $0, %[res]                  \n\t"
+@@ -58,7 +58,7 @@ public:
+         }
+         else if (n == 4)
+         {
+-            long res;
++            int64_t res;
+             __asm__
+                 ("// check for overflow           \n\t"
+                  "mov $0, %[res]                  \n\t"
+@@ -77,7 +77,7 @@ public:
+         }
+         else if (n == 5)
+         {
+-            long res;
++            int64_t res;
+             __asm__
+                 ("// check for overflow           \n\t"
+                  "mov $0, %[res]                  \n\t"
+@@ -190,7 +190,7 @@ T multi_exp_inner(typename std::vector<T>::const_iterator vec_start,
+     if (vec_len != odd_vec_len)
+     {
+         g.emplace_back(T::zero());
+-        opt_q.emplace_back(ordered_exponent<n>(odd_vec_len - 1, bigint<n>(0ul)));
++        opt_q.emplace_back(ordered_exponent<n>(odd_vec_len - 1, bigint<n>(UINT64_C(0))));
+     }
+     assert(g.size() % 2 == 1);
+     assert(opt_q.size() == g.size());
+@@ -214,7 +214,7 @@ T multi_exp_inner(typename std::vector<T>::const_iterator vec_start,
+         const size_t bbits = b.r.num_bits();
+         const size_t limit = (abits-bbits >= 20 ? 20 : abits-bbits);
+ 
+-        if (bbits < 1ul<<limit)
++        if (bbits < UINT64_C(1)<<limit)
+         {
+             /*
+               In this case, exponentiating to the power of a is cheaper than
+@@ -389,7 +389,7 @@ size_t get_exp_window_size(const size_t num_scalars)
+ #endif
+     }
+     size_t window = 1;
+-    for (long i = T::fixed_base_exp_window_table.size()-1; i >= 0; --i)
++    for (int64_t i = T::fixed_base_exp_window_table.size()-1; i >= 0; --i)
+     {
+ #ifdef DEBUG
+         if (!inhibit_profiling_info)
+@@ -420,9 +420,9 @@ window_table<T> get_window_table(const size_t scalar_size,
+                                  const size_t window,
+                                  const T &g)
+ {
+-    const size_t in_window = 1ul<<window;
++    const size_t in_window = UINT64_C(1)<<window;
+     const size_t outerc = (scalar_size+window-1)/window;
+-    const size_t last_in_window = 1ul<<(scalar_size - (outerc-1)*window);
++    const size_t last_in_window = UINT64_C(1)<<(scalar_size - (outerc-1)*window);
+ #ifdef DEBUG
+     if (!inhibit_profiling_info)
+     {
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp
+index a7ecd59..d6c4326 100644
+--- a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp
++++ b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.hpp
+@@ -18,7 +18,7 @@ namespace libsnark {
+  * Find the wNAF representation of the given scalar relative to the given window size.
+  */
+ template<mp_size_t n>
+-std::vector<long> find_wnaf(const size_t window_size, const bigint<n> &scalar);
++std::vector<int64_t> find_wnaf(const size_t window_size, const bigint<n> &scalar);
+ 
+ /**
+  * In additive notation, use wNAF exponentiation (with the given window size) to compute scalar * base.
+diff --git a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc
+index a5e47e8..4f2e407 100644
+--- a/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc
++++ b/src/snark/libsnark/algebra/scalar_multiplication/wnaf.tcc
+@@ -17,15 +17,15 @@
+ namespace libsnark {
+ 
+ template<mp_size_t n>
+-std::vector<long> find_wnaf(const size_t window_size, const bigint<n> &scalar)
++std::vector<int64_t> find_wnaf(const size_t window_size, const bigint<n> &scalar)
+ {
+     const size_t length = scalar.max_bits(); // upper bound
+-    std::vector<long> res(length+1);
++    std::vector<int64_t> res(length+1);
+     bigint<n> c = scalar;
+-    long j = 0;
++    int64_t j = 0;
+     while (!c.is_zero())
+     {
+-        long u;
++        int64_t u;
+         if ((c.data[0] & 1) == 1)
+         {
+             u = c.data[0] % (1u << (window_size+1));
+@@ -59,11 +59,11 @@ std::vector<long> find_wnaf(const size_t window_size, const bigint<n> &scalar)
+ template<typename T, mp_size_t n>
+ T fixed_window_wnaf_exp(const size_t window_size, const T &base, const bigint<n> &scalar)
+ {
+-    std::vector<long> naf = find_wnaf(window_size, scalar);
+-    std::vector<T> table(1ul<<(window_size-1));
++    std::vector<int64_t> naf = find_wnaf(window_size, scalar);
++    std::vector<T> table(UINT64_C(1)<<(window_size-1));
+     T tmp = base;
+     T dbl = base.dbl();
+-    for (size_t i = 0; i < 1ul<<(window_size-1); ++i)
++    for (size_t i = 0; i < UINT64_C(1)<<(window_size-1); ++i)
+     {
+         table[i] = tmp;
+         tmp = tmp + dbl;
+@@ -71,7 +71,7 @@ T fixed_window_wnaf_exp(const size_t window_size, const T &base, const bigint<n>
+ 
+     T res = T::zero();
+     bool found_nonzero = false;
+-    for (long i = naf.size()-1; i >= 0; --i)
++    for (int64_t i = naf.size()-1; i >= 0; --i)
+     {
+         if (found_nonzero)
+         {
+@@ -99,7 +99,7 @@ template<typename T, mp_size_t n>
+ T opt_window_wnaf_exp(const T &base, const bigint<n> &scalar, const size_t scalar_bits)
+ {
+     size_t best = 0;
+-    for (long i = T::wnaf_window_table.size() - 1; i >= 0; --i)
++    for (int64_t i = T::wnaf_window_table.size() - 1; i >= 0; --i)
+     {
+         if (scalar_bits >= T::wnaf_window_table[i])
+         {
+diff --git a/src/snark/libsnark/common/data_structures/merkle_tree.tcc b/src/snark/libsnark/common/data_structures/merkle_tree.tcc
+index 281700b..ce28b12 100644
+--- a/src/snark/libsnark/common/data_structures/merkle_tree.tcc
++++ b/src/snark/libsnark/common/data_structures/merkle_tree.tcc
+@@ -66,14 +66,14 @@ merkle_tree<HashT>::merkle_tree(const size_t depth,
+     assert(log2(contents_as_vector.size()) <= depth);
+     for (size_t address = 0; address < contents_as_vector.size(); ++address)
+     {
+-        const size_t idx = address + (1ul<<depth) - 1;
++        const size_t idx = address + (UINT64_C(1)<<depth) - 1;
+         values[idx] = contents_as_vector[address];
+         hashes[idx] = contents_as_vector[address];
+         hashes[idx].resize(digest_size);
+     }
+ 
+-    size_t idx_begin = (1ul<<depth) - 1;
+-    size_t idx_end = contents_as_vector.size() + ((1ul<<depth) - 1);
++    size_t idx_begin = (UINT64_C(1)<<depth) - 1;
++    size_t idx_end = contents_as_vector.size() + ((UINT64_C(1)<<depth) - 1);
+ 
+     for (int layer = depth; layer > 0; --layer)
+     {
+@@ -100,13 +100,13 @@ merkle_tree<HashT>::merkle_tree(const size_t depth,
+ 
+     if (!contents.empty())
+     {
+-        assert(contents.rbegin()->first < 1ul<<depth);
++        assert(contents.rbegin()->first < UINT64_C(1)<<depth);
+ 
+         for (auto it = contents.begin(); it != contents.end(); ++it)
+         {
+             const size_t address = it->first;
+             const bit_vector value = it->second;
+-            const size_t idx = address + (1ul<<depth) - 1;
++            const size_t idx = address + (UINT64_C(1)<<depth) - 1;
+ 
+             values[address] = value;
+             hashes[idx] = value;
+@@ -167,7 +167,7 @@ void merkle_tree<HashT>::set_value(const size_t address,
+                                    const bit_vector &value)
+ {
+     assert(log2(address) <= depth);
+-    size_t idx = address + (1ul<<depth) - 1;
++    size_t idx = address + (UINT64_C(1)<<depth) - 1;
+ 
+     assert(value.size() == value_size);
+     values[address] = value;
+@@ -201,7 +201,7 @@ typename HashT::merkle_authentication_path_type merkle_tree<HashT>::get_path(con
+ {
+     typename HashT::merkle_authentication_path_type result(depth);
+     assert(log2(address) <= depth);
+-    size_t idx = address + (1ul<<depth) - 1;
++    size_t idx = address + (UINT64_C(1)<<depth) - 1;
+ 
+     for (size_t layer = depth; layer > 0; --layer)
+     {
+@@ -209,7 +209,7 @@ typename HashT::merkle_authentication_path_type merkle_tree<HashT>::get_path(con
+         auto it = hashes.find(sibling_idx);
+         if (layer == depth)
+         {
+-            auto it2 = values.find(sibling_idx - ((1ul<<depth) - 1));
++            auto it2 = values.find(sibling_idx - ((UINT64_C(1)<<depth) - 1));
+             result[layer-1] = (it2 == values.end() ? bit_vector(value_size, false) : it2->second);
+             result[layer-1].resize(digest_size);
+         }
+@@ -227,7 +227,7 @@ typename HashT::merkle_authentication_path_type merkle_tree<HashT>::get_path(con
+ template<typename HashT>
+ void merkle_tree<HashT>::dump() const
+ {
+-    for (size_t i = 0; i < 1ul<<depth; ++i)
++    for (size_t i = 0; i < UINT64_C(1)<<depth; ++i)
+     {
+         auto it = values.find(i);
+         printf("[%zu] -> ", i);
+diff --git a/src/snark/libsnark/common/profiling.cpp b/src/snark/libsnark/common/profiling.cpp
+index ae8f85a..0f1050e 100644
+--- a/src/snark/libsnark/common/profiling.cpp
++++ b/src/snark/libsnark/common/profiling.cpp
+@@ -26,27 +26,44 @@
  #include <proc/readproc.h>
  #endif
--
+ 
 +#ifdef __MACH__
 +#include <time.h>
 +#include <sys/time.h>
 +#include <mach/clock.h>
 +#include <mach/mach.h>
 +#endif
++
  namespace libsnark {
  
- long long get_nsec_time()
-@@ -37,12 +42,22 @@ long long get_nsec_time()
- /* Return total CPU time consumsed by all threads of the process, in nanoseconds. */
- long long get_nsec_cpu_time()
+-long long get_nsec_time()
++int64_t get_nsec_time()
  {
--    ::timespec ts;
-+      ::timespec ts;
-+#ifdef __MACH__
-+     clock_serv_t cclock;
-+     mach_timespec_t mts;
-+     host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
-+     clock_get_time(cclock, &mts);
-+     mach_port_deallocate(mach_task_self(), cclock);
-+     ts.tv_sec = mts.tv_sec;
-+     ts.tv_nsec = mts.tv_nsec;
-+#else
-     if ( ::clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts) )
--        throw ::std::runtime_error("clock_gettime(CLOCK_PROCESS_CPUTIME_ID) failed");
--        // If we expected this to work, don't silently ignore failures, because that would hide the problem and incur an unnecessarily system-call overhead. So if we ever observe this exception, we should probably add a suitable #ifdef .
--        //TODO: clock_gettime(CLOCK_PROCESS_CPUTIME_ID) is not supported by native Windows. What about Cygwin? Should we #ifdef on CLOCK_PROCESS_CPUTIME_ID or on __linux__?
--    return ts.tv_sec * 1000000000ll + ts.tv_nsec;
-+          throw ::std::runtime_error("clock_gettime(CLOCK_PROCESS_CPUTIME_ID) failed");
-+          // If we expected this to work, don't silently ignore failures, because that would hide the problem and incur an unnecessarily system-call overhead. So if we ever observe this exception, we should probably add a suitable #ifdef .
-+          //TODO: clock_gettime(CLOCK_PROCESS_CPUTIME_ID) is not supported by native Windows. What about Cygwin? Should we #ifdef on CLOCK_PROCESS_CPUTIME_ID or on __linux__?
-+#endif
-+      return ts.tv_sec * 1000000000ll + ts.tv_nsec;
+     auto timepoint = std::chrono::high_resolution_clock::now();
+     return std::chrono::duration_cast<std::chrono::nanoseconds>(timepoint.time_since_epoch()).count();
  }
  
- long long start_time, last_time;
+ /* Return total CPU time consumed by all threads of the process, in nanoseconds. */
+-long long get_nsec_cpu_time()
++int64_t get_nsec_cpu_time()
+ {
+     ::timespec ts;
++#ifdef __MACH__
++    clock_serv_t cclock;
++    mach_timespec_t mts;
++    host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
++    clock_get_time(cclock, &mts);
++    mach_port_deallocate(mach_task_self(), cclock);
++    ts.tv_sec = mts.tv_sec;
++    ts.tv_nsec = mts.tv_nsec;
++#else
+     if ( ::clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &ts) )
+         throw ::std::runtime_error("clock_gettime(CLOCK_PROCESS_CPUTIME_ID) failed");
+         // If we expected this to work, don't silently ignore failures, because that would hide the problem and incur an unnecessarily system-call overhead. So if we ever observe this exception, we should probably add a suitable #ifdef .
+         //TODO: clock_gettime(CLOCK_PROCESS_CPUTIME_ID) is not supported by native Windows. What about Cygwin? Should we #ifdef on CLOCK_PROCESS_CPUTIME_ID or on __linux__?
++#endif
+     return ts.tv_sec * 1000000000ll + ts.tv_nsec;
+ }
+ 
+-long long start_time, last_time;
+-long long start_cpu_time, last_cpu_time;
++int64_t start_time, last_time;
++int64_t start_cpu_time, last_cpu_time;
+ 
+ void start_profiling()
+ {
+@@ -57,20 +74,20 @@ void start_profiling()
+ }
+ 
+ std::map<std::string, size_t> invocation_counts;
+-std::map<std::string, long long> enter_times;
+-std::map<std::string, long long> last_times;
+-std::map<std::string, long long> cumulative_times;
++std::map<std::string, int64_t> enter_times;
++std::map<std::string, int64_t> last_times;
++std::map<std::string, int64_t> cumulative_times;
+ //TODO: Instead of analogous maps for time and cpu_time, use a single struct-valued map
+-std::map<std::string, long long> enter_cpu_times;
+-std::map<std::string, long long> last_cpu_times;
+-std::map<std::pair<std::string, std::string>, long long> op_counts;
+-std::map<std::pair<std::string, std::string>, long long> cumulative_op_counts; // ((msg, data_point), value)
++std::map<std::string, int64_t> enter_cpu_times;
++std::map<std::string, int64_t> last_cpu_times;
++std::map<std::pair<std::string, std::string>, int64_t> op_counts;
++std::map<std::pair<std::string, std::string>, int64_t> cumulative_op_counts; // ((msg, data_point), value)
+     // TODO: Convert op_counts and cumulative_op_counts from pair to structs
+ size_t indentation = 0;
+ 
+ std::vector<std::string> block_names;
+ 
+-std::list<std::pair<std::string, long long*> > op_data_points = {
++std::list<std::pair<std::string, int64_t*> > op_data_points = {
+ #ifdef PROFILE_OP_COUNTS
+     std::make_pair("Fradd", &Fr<default_ec_pp>::add_cnt),
+     std::make_pair("Frsub", &Fr<default_ec_pp>::sub_cnt),
+@@ -98,7 +115,7 @@ void clear_profiling_counters()
+     cumulative_times.clear();
+ }
+ 
+-void print_cumulative_time_entry(const std::string &key, const long long factor)
++void print_cumulative_time_entry(const std::string &key, const int64_t factor)
+ {
+     const double total_ms = (cumulative_times.at(key) * 1e-6);
+     const size_t cnt = invocation_counts.at(key);
+@@ -106,7 +123,7 @@ void print_cumulative_time_entry(const std::string &key, const long long factor)
+     printf("   %-45s: %12.5fms = %lld * %0.5fms (%zu invocations, %0.5fms = %lld * %0.5fms per invocation)\n", key.c_str(), total_ms, factor, total_ms/factor, cnt, avg_ms, factor, avg_ms/factor);
+ }
+ 
+-void print_cumulative_times(const long long factor)
++void print_cumulative_times(const int64_t factor)
+ {
+     printf("Dumping times:\n");
+     for (auto& kv : cumulative_times)
+@@ -155,7 +172,7 @@ void print_op_profiling(const std::string &msg)
+ 
+     printf("(opcounts) = (");
+     bool first = true;
+-    for (std::pair<std::string, long long*> p : op_data_points)
++    for (std::pair<std::string, int64_t*> p : op_data_points)
+     {
+         if (!first)
+         {
+@@ -171,14 +188,14 @@ void print_op_profiling(const std::string &msg)
+ #endif
+ }
+ 
+-static void print_times_from_last_and_start(long long     now, long long     last,
+-                                            long long cpu_now, long long cpu_last)
++static void print_times_from_last_and_start(int64_t     now, int64_t     last,
++                                            int64_t cpu_now, int64_t cpu_last)
+ {
+-    long long time_from_start = now - start_time;
+-    long long time_from_last = now - last;
++    int64_t time_from_start = now - start_time;
++    int64_t time_from_last = now - last;
+ 
+-    long long cpu_time_from_start = cpu_now - start_cpu_time;
+-    long long cpu_time_from_last = cpu_now - cpu_last;
++    int64_t cpu_time_from_start = cpu_now - start_cpu_time;
++    int64_t cpu_time_from_last = cpu_now - cpu_last;
+ 
+     if (time_from_last != 0) {
+         double parallelism_from_last = 1.0 * cpu_time_from_last / time_from_last;
+@@ -199,8 +216,8 @@ void print_time(const char* msg)
+         return;
+     }
+ 
+-    long long now = get_nsec_time();
+-    long long cpu_now = get_nsec_cpu_time();
++    int64_t now = get_nsec_time();
++    int64_t cpu_now = get_nsec_cpu_time();
+ 
+     printf("%-35s\t", msg);
+     print_times_from_last_and_start(now, last_time, cpu_now, last_cpu_time);
+@@ -231,7 +248,7 @@ void print_indent()
+ 
+ void op_profiling_enter(const std::string &msg)
+ {
+-    for (std::pair<std::string, long long*> p : op_data_points)
++    for (std::pair<std::string, int64_t*> p : op_data_points)
+     {
+         op_counts[std::make_pair(msg, p.first)] = *(p.second);
+     }
+@@ -245,9 +262,9 @@ void enter_block(const std::string &msg, const bool indent)
+     }
+ 
+     block_names.emplace_back(msg);
+-    long long t = get_nsec_time();
++    int64_t t = get_nsec_time();
+     enter_times[msg] = t;
+-    long long cpu_t = get_nsec_cpu_time();
++    int64_t cpu_t = get_nsec_cpu_time();
+     enter_cpu_times[msg] = cpu_t;
+ 
+     if (inhibit_profiling_info)
+@@ -288,15 +305,15 @@ void leave_block(const std::string &msg, const bool indent)
+ 
+     ++invocation_counts[msg];
+ 
+-    long long t = get_nsec_time();
++    int64_t t = get_nsec_time();
+     last_times[msg] = (t - enter_times[msg]);
+     cumulative_times[msg] += (t - enter_times[msg]);
+ 
+-    long long cpu_t = get_nsec_cpu_time();
++    int64_t cpu_t = get_nsec_cpu_time();
+     last_cpu_times[msg] = (cpu_t - enter_cpu_times[msg]);
+ 
+ #ifdef PROFILE_OP_COUNTS
+-    for (std::pair<std::string, long long*> p : op_data_points)
++    for (std::pair<std::string, int64_t*> p : op_data_points)
+     {
+         cumulative_op_counts[std::make_pair(msg, p.first)] += *(p.second)-op_counts[std::make_pair(msg, p.first)];
+     }
+diff --git a/src/snark/libsnark/common/profiling.hpp b/src/snark/libsnark/common/profiling.hpp
+index 9619117..4a49610 100644
+--- a/src/snark/libsnark/common/profiling.hpp
++++ b/src/snark/libsnark/common/profiling.hpp
+@@ -22,7 +22,7 @@
+ namespace libsnark {
+ 
+ void start_profiling();
+-long long get_nsec_time();
++int64_t get_nsec_time();
+ void print_time(const char* msg);
+ void print_header(const char* msg);
+ 
+@@ -31,13 +31,13 @@ void print_indent();
+ extern bool inhibit_profiling_info;
+ extern bool inhibit_profiling_counters;
+ extern std::map<std::string, size_t> invocation_counts;
+-extern std::map<std::string, long long> last_times;
+-extern std::map<std::string, long long> cumulative_times;
++extern std::map<std::string, int64_t> last_times;
++extern std::map<std::string, int64_t> cumulative_times;
+ 
+ void clear_profiling_counters();
+ 
+-void print_cumulative_time_entry(const std::string &key, const long long factor=1);
+-void print_cumulative_times(const long long factor=1);
++void print_cumulative_time_entry(const std::string &key, const int64_t factor=1);
++void print_cumulative_times(const int64_t factor=1);
+ void print_cumulative_op_counts(const bool only_fq=false);
+ 
+ void enter_block(const std::string &msg, const bool indent=true);
+diff --git a/src/snark/libsnark/common/utils.cpp b/src/snark/libsnark/common/utils.cpp
+index dd114fd..06af6ef 100644
+--- a/src/snark/libsnark/common/utils.cpp
++++ b/src/snark/libsnark/common/utils.cpp
+@@ -16,7 +16,7 @@
+ namespace libsnark {
+ 
+ size_t log2(size_t n)
+-/* returns ceil(log2(n)), so 1ul<<log2(n) is the smallest power of 2,
++/* returns ceil(log2(n)), so UINT64_C(1)<<log2(n) is the smallest power of 2,
+    that is not less than n. */
+ {
+     size_t r = ((n & (n-1)) == 0 ? 0 : 1); // add 1 if n is not power of 2
+@@ -41,20 +41,20 @@ size_t bitreverse(size_t n, const size_t l)
+     return r;
+ }
+ 
+-bit_vector int_list_to_bits(const std::initializer_list<unsigned long> &l, const size_t wordsize)
++bit_vector int_list_to_bits(const std::initializer_list<uint64_t> &l, const size_t wordsize)
+ {
+     bit_vector res(wordsize*l.size());
+     for (size_t i = 0; i < l.size(); ++i)
+     {
+         for (size_t j = 0; j < wordsize; ++j)
+         {
+-            res[i*wordsize + j] = (*(l.begin()+i) & (1ul<<(wordsize-1-j)));
++            res[i*wordsize + j] = (*(l.begin()+i) & (UINT64_C(1)<<(wordsize-1-j)));
+         }
+     }
+     return res;
+ }
+ 
+-long long div_ceil(long long x, long long y)
++int64_t div_ceil(int64_t x, int64_t y)
+ {
+     return (x + (y-1)) / y;
+ }
+diff --git a/src/snark/libsnark/common/utils.hpp b/src/snark/libsnark/common/utils.hpp
+index d7d9e89..505f674 100644
+--- a/src/snark/libsnark/common/utils.hpp
++++ b/src/snark/libsnark/common/utils.hpp
+@@ -20,14 +20,14 @@ namespace libsnark {
+ 
+ typedef std::vector<bool> bit_vector;
+ 
+-/// returns ceil(log2(n)), so 1ul<<log2(n) is the smallest power of 2, that is not less than n
++/// returns ceil(log2(n)), so UINT64_C(1)<<log2(n) is the smallest power of 2, that is not less than n
+ size_t log2(size_t n);
+ 
+-inline size_t exp2(size_t k) { return 1ul << k; }
++inline size_t exp2(size_t k) { return UINT64_C(1) << k; }
+ 
+ size_t bitreverse(size_t n, const size_t l);
+-bit_vector int_list_to_bits(const std::initializer_list<unsigned long> &l, const size_t wordsize);
+-long long div_ceil(long long x, long long y);
++bit_vector int_list_to_bits(const std::initializer_list<uint64_t> &l, const size_t wordsize);
++int64_t div_ceil(int64_t x, int64_t y);
+ 
+ bool is_little_endian();
+ 
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc b/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc
+index 213b190..bcd2f2c 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/basic_gadgets.tcc
+@@ -275,11 +275,11 @@ void test_disjunction_gadget(const size_t n)
+     disjunction_gadget<FieldT> d(pb, inputs, output, "d");
+     d.generate_r1cs_constraints();
+ 
+-    for (size_t w = 0; w < 1ul<<n; ++w)
++    for (size_t w = 0; w < UINT64_C(1)<<n; ++w)
+     {
+         for (size_t j = 0; j < n; ++j)
+         {
+-            pb.val(inputs[j]) = FieldT((w & (1ul<<j)) ? 1 : 0);
++            pb.val(inputs[j]) = FieldT((w & (UINT64_C(1)<<j)) ? 1 : 0);
+         }
+ 
+         d.generate_r1cs_witness();
+@@ -366,11 +366,11 @@ void test_conjunction_gadget(const size_t n)
+     conjunction_gadget<FieldT> c(pb, inputs, output, "c");
+     c.generate_r1cs_constraints();
+ 
+-    for (size_t w = 0; w < 1ul<<n; ++w)
++    for (size_t w = 0; w < UINT64_C(1)<<n; ++w)
+     {
+         for (size_t j = 0; j < n; ++j)
+         {
+-            pb.val(inputs[j]) = (w & (1ul<<j)) ? FieldT::one() : FieldT::zero();
++            pb.val(inputs[j]) = (w & (UINT64_C(1)<<j)) ? FieldT::one() : FieldT::zero();
+         }
+ 
+         c.generate_r1cs_witness();
+@@ -378,13 +378,13 @@ void test_conjunction_gadget(const size_t n)
+ #ifdef DEBUG
+         printf("positive test for %zu\n", w);
+ #endif
+-        assert(pb.val(output) == (w == (1ul<<n) - 1 ? FieldT::one() : FieldT::zero()));
++        assert(pb.val(output) == (w == (UINT64_C(1)<<n) - 1 ? FieldT::one() : FieldT::zero()));
+         assert(pb.is_satisfied());
+ 
+ #ifdef DEBUG
+         printf("negative test for %zu\n", w);
+ #endif
+-        pb.val(output) = (w == (1ul<<n) - 1 ? FieldT::zero() : FieldT::one());
++        pb.val(output) = (w == (UINT64_C(1)<<n) - 1 ? FieldT::zero() : FieldT::one());
+         assert(!pb.is_satisfied());
+     }
+ 
+@@ -454,9 +454,9 @@ void test_comparison_gadget(const size_t n)
+     comparison_gadget<FieldT> cmp(pb, n, A, B, less, less_or_eq, "cmp");
+     cmp.generate_r1cs_constraints();
+ 
+-    for (size_t a = 0; a < 1ul<<n; ++a)
++    for (size_t a = 0; a < UINT64_C(1)<<n; ++a)
+     {
+-        for (size_t b = 0; b < 1ul<<n; ++b)
++        for (size_t b = 0; b < UINT64_C(1)<<n; ++b)
+         {
+             pb.val(A) = FieldT(a);
+             pb.val(B) = FieldT(b);
+@@ -523,16 +523,16 @@ void test_inner_product_gadget(const size_t n)
+     inner_product_gadget<FieldT> g(pb, A, B, result, "g");
+     g.generate_r1cs_constraints();
+ 
+-    for (size_t i = 0; i < 1ul<<n; ++i)
++    for (size_t i = 0; i < UINT64_C(1)<<n; ++i)
+     {
+-        for (size_t j = 0; j < 1ul<<n; ++j)
++        for (size_t j = 0; j < UINT64_C(1)<<n; ++j)
+         {
+             size_t correct = 0;
+             for (size_t k = 0; k < n; ++k)
+             {
+-                pb.val(A[k]) = (i & (1ul<<k) ? FieldT::one() : FieldT::zero());
+-                pb.val(B[k]) = (j & (1ul<<k) ? FieldT::one() : FieldT::zero());
+-                correct += ((i & (1ul<<k)) && (j & (1ul<<k)) ? 1 : 0);
++                pb.val(A[k]) = (i & (UINT64_C(1)<<k) ? FieldT::one() : FieldT::zero());
++                pb.val(B[k]) = (j & (UINT64_C(1)<<k) ? FieldT::one() : FieldT::zero());
++                correct += ((i & (UINT64_C(1)<<k)) && (j & (UINT64_C(1)<<k)) ? 1 : 0);
+             }
+ 
+             g.generate_r1cs_witness();
+@@ -587,7 +587,7 @@ void loose_multiplexing_gadget<FieldT>::generate_r1cs_witness()
+ {
+     /* assumes that idx can be fit in ulong; true for our purposes for now */
+     const bigint<FieldT::num_limbs> valint = this->pb.val(index).as_bigint();
+-    unsigned long idx = valint.as_ulong();
++    uint64_t idx = valint.as_ulong();
+     const bigint<FieldT::num_limbs> arrsize(arr.size());
+ 
+     if (idx >= arr.size() || mpn_cmp(valint.data, arrsize.data, FieldT::num_limbs) >= 0)
+@@ -619,7 +619,7 @@ void test_loose_multiplexing_gadget(const size_t n)
+     protoboard<FieldT> pb;
+ 
+     pb_variable_array<FieldT> arr;
+-    arr.allocate(pb, 1ul<<n, "arr");
++    arr.allocate(pb, UINT64_C(1)<<n, "arr");
+     pb_variable<FieldT> index, result, success_flag;
+     index.allocate(pb, "index");
+     result.allocate(pb, "result");
+@@ -628,20 +628,20 @@ void test_loose_multiplexing_gadget(const size_t n)
+     loose_multiplexing_gadget<FieldT> g(pb, arr, index, result, success_flag, "g");
+     g.generate_r1cs_constraints();
+ 
+-    for (size_t i = 0; i < 1ul<<n; ++i)
++    for (size_t i = 0; i < UINT64_C(1)<<n; ++i)
+     {
+-        pb.val(arr[i]) = FieldT((19*i) % (1ul<<n));
++        pb.val(arr[i]) = FieldT((19*i) % (UINT64_C(1)<<n));
+     }
+ 
+-    for (int idx = -1; idx <= (int)(1ul<<n); ++idx)
++    for (int idx = -1; idx <= (int)(UINT64_C(1)<<n); ++idx)
+     {
+         pb.val(index) = FieldT(idx);
+         g.generate_r1cs_witness();
+ 
+-        if (0 <= idx && idx <= (int)(1ul<<n) - 1)
++        if (0 <= idx && idx <= (int)(UINT64_C(1)<<n) - 1)
+         {
+             printf("demuxing element %d (in bounds)\n", idx);
+-            assert(pb.val(result) == FieldT((19*idx) % (1ul<<n)));
++            assert(pb.val(result) == FieldT((19*idx) % (UINT64_C(1)<<n)));
+             assert(pb.val(success_flag) == FieldT::one());
+             assert(pb.is_satisfied());
+             pb.val(result) -= FieldT::one();
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
+index 8ab67be..148fe79 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_aux.tcc
+@@ -285,7 +285,7 @@ void majority_gadget<FieldT>::generate_r1cs_witness()
+ {
+     for (size_t i = 0; i < 32; ++i)
+     {
+-        const long v = (this->pb.lc_val(X[i]) + this->pb.lc_val(Y[i]) + this->pb.lc_val(Z[i])).as_ulong();
++        const int64_t v = (this->pb.lc_val(X[i]) + this->pb.lc_val(Y[i]) + this->pb.lc_val(Z[i])).as_ulong();
+         this->pb.val(result_bits[i]) = FieldT(v / 2);
+     }
+ 
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
+index c2f31e3..13bbc07 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.hpp
+@@ -78,7 +78,7 @@ public:
+     pb_linear_combination_array<FieldT> g;
+     pb_linear_combination_array<FieldT> h;
+     pb_variable<FieldT> W;
+-    long K;
++    int64_t K;
+     pb_linear_combination_array<FieldT> new_a;
+     pb_linear_combination_array<FieldT> new_e;
+ 
+@@ -92,7 +92,7 @@ public:
+                                  const pb_linear_combination_array<FieldT> &g,
+                                  const pb_linear_combination_array<FieldT> &h,
+                                  const pb_variable<FieldT> &W,
+-                                 const long &K,
++                                 const int64_t &K,
+                                  const pb_linear_combination_array<FieldT> &new_a,
+                                  const pb_linear_combination_array<FieldT> &new_e,
+                                  const std::string &annotation_prefix);
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
+index e8f233a..b0e0063 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/hashes/sha256/sha256_components.tcc
+@@ -16,7 +16,7 @@
+ 
+ namespace libsnark {
+ 
+-const unsigned long SHA256_K[64] =  {
++const uint64_t SHA256_K[64] =  {
+     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+     0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+@@ -27,7 +27,7 @@ const unsigned long SHA256_K[64] =  {
+     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+ };
+ 
+-const unsigned long SHA256_H[8] = {
++const uint64_t SHA256_H[8] = {
+     0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+ };
+ 
+@@ -149,7 +149,7 @@ sha256_round_function_gadget<FieldT>::sha256_round_function_gadget(protoboard<Fi
+                                                                    const pb_linear_combination_array<FieldT> &g,
+                                                                    const pb_linear_combination_array<FieldT> &h,
+                                                                    const pb_variable<FieldT> &W,
+-                                                                   const long &K,
++                                                                   const int64_t &K,
+                                                                    const pb_linear_combination_array<FieldT> &new_a,
+                                                                    const pb_linear_combination_array<FieldT> &new_e,
+                                                                    const std::string &annotation_prefix) :
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
+index d773051..b3d805d 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_authentication_path_variable.tcc
+@@ -41,7 +41,7 @@ void merkle_authentication_path_variable<FieldT, HashT>::generate_r1cs_witness(c
+ 
+     for (size_t i = 0; i < tree_depth; ++i)
+     {
+-        if (address & (1ul << (tree_depth-1-i)))
++        if (address & (UINT64_C(1) << (tree_depth-1-i)))
+         {
+             left_digests[i].generate_r1cs_witness(path[i]);
+         }
+@@ -58,7 +58,7 @@ merkle_authentication_path merkle_authentication_path_variable<FieldT, HashT>::g
+     merkle_authentication_path result;
+     for (size_t i = 0; i < tree_depth; ++i)
+     {
+-        if (address & (1ul << (tree_depth-1-i)))
++        if (address & (UINT64_C(1) << (tree_depth-1-i)))
+         {
+             result.emplace_back(left_digests[i].get_digest());
+         }
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
+index 6002a58..2fde4f6 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_read_gadget.tcc
+@@ -144,10 +144,10 @@ void test_merkle_tree_check_read_gadget()
+     bit_vector address_bits;
+ 
+     size_t address = 0;
+-    for (long level = tree_depth-1; level >= 0; --level)
++    for (int64_t level = tree_depth-1; level >= 0; --level)
+     {
+         const bool computed_is_right = (std::rand() % 2);
+-        address |= (computed_is_right ? 1ul << (tree_depth-1-level) : 0);
++        address |= (computed_is_right ? UINT64_C(1) << (tree_depth-1-level) : 0);
+         address_bits.push_back(computed_is_right);
+         bit_vector other(digest_len);
+         std::generate(other.begin(), other.end(), [&]() { return std::rand() % 2; });
+diff --git a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
+index 1ac08ed..3e73904 100644
+--- a/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
++++ b/src/snark/libsnark/gadgetlib1/gadgets/merkle_tree/merkle_tree_check_update_gadget.tcc
+@@ -197,10 +197,10 @@ void test_merkle_tree_check_update_gadget()
+     bit_vector address_bits;
+ 
+     size_t address = 0;
+-    for (long level = tree_depth-1; level >= 0; --level)
++    for (int64_t level = tree_depth-1; level >= 0; --level)
+     {
+         const bool computed_is_right = (std::rand() % 2);
+-        address |= (computed_is_right ? 1ul << (tree_depth-1-level) : 0);
++        address |= (computed_is_right ? UINT64_C(1) << (tree_depth-1-level) : 0);
+         address_bits.push_back(computed_is_right);
+         bit_vector other(digest_len);
+         std::generate(other.begin(), other.end(), [&]() { return std::rand() % 2; });
+diff --git a/src/snark/libsnark/gadgetlib1/pb_variable.hpp b/src/snark/libsnark/gadgetlib1/pb_variable.hpp
+index fdf64d0..a6c7174 100644
+--- a/src/snark/libsnark/gadgetlib1/pb_variable.hpp
++++ b/src/snark/libsnark/gadgetlib1/pb_variable.hpp
+@@ -59,7 +59,7 @@ public:
+ 
+     void fill_with_field_elements(protoboard<FieldT> &pb, const std::vector<FieldT>& vals) const;
+     void fill_with_bits(protoboard<FieldT> &pb, const bit_vector& bits) const;
+-    void fill_with_bits_of_ulong(protoboard<FieldT> &pb, const unsigned long i) const;
++    void fill_with_bits_of_ulong(protoboard<FieldT> &pb, const uint64_t i) const;
+     void fill_with_bits_of_field_element(protoboard<FieldT> &pb, const FieldT &r) const;
+ 
+     std::vector<FieldT> get_vals(const protoboard<FieldT> &pb) const;
+@@ -120,7 +120,7 @@ public:
+ 
+     void fill_with_field_elements(protoboard<FieldT> &pb, const std::vector<FieldT>& vals) const;
+     void fill_with_bits(protoboard<FieldT> &pb, const bit_vector& bits) const;
+-    void fill_with_bits_of_ulong(protoboard<FieldT> &pb, const unsigned long i) const;
++    void fill_with_bits_of_ulong(protoboard<FieldT> &pb, const uint64_t i) const;
+     void fill_with_bits_of_field_element(protoboard<FieldT> &pb, const FieldT &r) const;
+ 
+     std::vector<FieldT> get_vals(const protoboard<FieldT> &pb) const;
+diff --git a/src/snark/libsnark/gadgetlib1/pb_variable.tcc b/src/snark/libsnark/gadgetlib1/pb_variable.tcc
+index b36b3f8..77c9f13 100644
+--- a/src/snark/libsnark/gadgetlib1/pb_variable.tcc
++++ b/src/snark/libsnark/gadgetlib1/pb_variable.tcc
+@@ -65,7 +65,7 @@ void pb_variable_array<FieldT>::fill_with_bits_of_field_element(protoboard<Field
+ }
+ 
+ template<typename FieldT>
+-void pb_variable_array<FieldT>::fill_with_bits_of_ulong(protoboard<FieldT> &pb, const unsigned long i) const
++void pb_variable_array<FieldT>::fill_with_bits_of_ulong(protoboard<FieldT> &pb, const uint64_t i) const
+ {
+     this->fill_with_bits_of_field_element(pb, FieldT(i, true));
+ }
+@@ -232,7 +232,7 @@ void pb_linear_combination_array<FieldT>::fill_with_bits_of_field_element(protob
+ }
+ 
+ template<typename FieldT>
+-void pb_linear_combination_array<FieldT>::fill_with_bits_of_ulong(protoboard<FieldT> &pb, const unsigned long i) const
++void pb_linear_combination_array<FieldT>::fill_with_bits_of_ulong(protoboard<FieldT> &pb, const uint64_t i) const
+ {
+     this->fill_with_bits_of_field_element(pb, FieldT(i));
+ }
+diff --git a/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp b/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp
+index e20f589..3c7b870 100644
+--- a/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp
++++ b/src/snark/libsnark/relations/arithmetic_programs/qap/tests/test_qap.cpp
+@@ -92,13 +92,13 @@ TEST(relations, qap)
+ 
+     enter_block("Test QAP with binary input");
+ 
+-    test_qap<Fr<alt_bn128_pp> >(1ul << 21, num_inputs, true);
++    test_qap<Fr<alt_bn128_pp> >(UINT64_C(1) << 21, num_inputs, true);
+ 
+     leave_block("Test QAP with binary input");
+ 
+     enter_block("Test QAP with field input");
+ 
+-    test_qap<Fr<alt_bn128_pp> >(1ul << 21, num_inputs, false);
++    test_qap<Fr<alt_bn128_pp> >(UINT64_C(1) << 21, num_inputs, false);
+ 
+     leave_block("Test QAP with field input");
+ }
 diff --git a/zcutil/build.sh b/zcutil/build.sh
-index 33baeae..93f6df8 100755
+index 672af95..152a036 100755
 --- a/zcutil/build.sh
 +++ b/zcutil/build.sh
 @@ -35,10 +35,10 @@ fi
@@ -90,13 +1409,59 @@ index 33baeae..93f6df8 100755
 +    CXX=/usr/local/opt/llvm/bin/clang++
  fi
  
- if [ "x$*" = 'x--help' ]
-@@ -130,7 +130,7 @@ eval "$CXX" --version
+ # Allow users to set arbitary compile flags. Most users will not need this.
+@@ -124,7 +124,7 @@ eval "$CXX" --version
  as --version
  ld -v
  
--HOST="$HOST" BUILD="$BUILD" NO_RUST="$RUST_ARG" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
-+CC="$CC" CXX="$CXX" HOST="$HOST" BUILD="$BUILD" NO_RUST="$RUST_ARG" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
+-HOST="$HOST" BUILD="$BUILD" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
++CC="$CC" CXX="$CXX" HOST="$HOST" BUILD="$BUILD" NO_PROTON="$PROTON_ARG" "$MAKE" "$@" -C ./depends/ V=1
  ./autogen.sh
- CC="$CC" CXX="$CXX" ./configure  --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$RUST_ARG" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" --enable-werror CXXFLAGS='-Wno-undefined-var-template -g'
+-CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" $CONFIGURE_FLAGS --enable-werror CXXFLAGS='-g'
+-"$MAKE" "$@" V=1
++CC="$CC" CXX="$CXX" ./configure --prefix="${PREFIX}" --host="$HOST" --build="$BUILD" "$HARDENING_ARG" "$LCOV_ARG" "$TEST_ARG" "$MINING_ARG" "$PROTON_ARG" "$LIBS_ARG" $CONFIGURE_FLAGS CXXFLAGS='-g'
++CC="$CC" CXX="$CXX" "$MAKE" "$@" V=1
+diff --git a/zcutil/fetch-params.sh b/zcutil/fetch-params.sh
+index 392f60a..f9438b8 100755
+--- a/zcutil/fetch-params.sh
++++ b/zcutil/fetch-params.sh
+@@ -2,7 +2,11 @@
  
+ set -eu
+ 
+-PARAMS_DIR="$HOME/.zcash-params"
++if [[ "$OSTYPE" == "darwin"* ]]; then
++    PARAMS_DIR="$HOME/Library/Application Support/ZcashParams"
++else
++    PARAMS_DIR="$HOME/.zcash-params"
++fi
+ 
+ SPROUT_PKEY_NAME='sprout-proving.key'
+ SPROUT_VKEY_NAME='sprout-verifying.key'
+@@ -102,12 +106,20 @@ EOF
+ # Use flock to prevent parallel execution.
+ function lock() {
+     local lockfile=/tmp/fetch_params.lock
+-    # create lock file
+-    eval "exec 200>/$lockfile"
+-    # acquire the lock
+-    flock -n 200 \
+-        && return 0 \
+-        || return 1
++    if [[ "$OSTYPE" == "darwin"* ]]; then
++        if shlock -f ${lockfile} -p $$; then
++            return 0
++        else
++            return 1
++        fi
++    else
++        # create lock file
++        eval "exec 200>/$lockfile"
++        # acquire the lock
++        flock -n 200 \
++            && return 0 \
++            || return 1
++    fi
+ }
+ 
+ function exit_locked_error {
