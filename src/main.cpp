@@ -3374,8 +3374,10 @@ bool ContextualCheckBlock(const CBlock& block, CValidationState& state, CBlockIn
         BOOST_FOREACH(const CTransaction& tx, block.vtx) {
             if (!tx.IsCoinBase()) {
                 CCoinsViewCache view(pcoinsTip);
-                CAmount nTxFees = view.GetValueIn(tx)-tx.GetValueOut();
-                nFees += nTxFees;
+                if (view.HaveInputs(tx)) {
+                    CAmount nTxFees = view.GetValueIn(tx)-tx.GetValueOut();
+                    nFees += nTxFees;
+                }
             }
         }
         nFees = nFees * consensusParams.nFoundersRewardTxPercentage / 100;
